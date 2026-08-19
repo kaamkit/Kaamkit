@@ -6,7 +6,9 @@ export default function ImageCompressor() {
   const [file, setFile] = useState(null);
   const [quality, setQuality] = useState(70);
   const [preview, setPreview] = useState(null);
-  const [compressedSize, setCompressedSize] = useState(null);
+  const [compressedUrl, setCompressedUrl] = useState(null);
+  const [originalSize, setOriginalSize] = useState(0);
+  const [compressedSize, setCompressedSize] = useState(0);
 
   const handleFile = (e) => {
     const selectedFile = e.target.files?.[0];
@@ -19,8 +21,12 @@ export default function ImageCompressor() {
     }
 
     setFile(selectedFile);
-    setPreview(URL.createObjectURL(selectedFile));
-    setCompressedSize(null);
+    setOriginalSize(selectedFile.size);
+    setCompressedUrl(null);
+    setCompressedSize(0);
+
+    const url = URL.createObjectURL(selectedFile);
+    setPreview(url);
   };
 
   const compressImage = () => {
@@ -30,7 +36,6 @@ export default function ImageCompressor() {
     }
 
     const img = new Image();
-    img.src = URL.createObjectURL(file);
 
     img.onload = () => {
       const canvas = document.createElement("canvas");
@@ -41,8 +46,6 @@ export default function ImageCompressor() {
 
       ctx.drawImage(img, 0, 0);
 
-      const compressionQuality = quality / 100;
-
       canvas.toBlob(
         (blob) => {
           if (!blob) {
@@ -50,137 +53,138 @@ export default function ImageCompressor() {
             return;
           }
 
+          const url = URL.createObjectURL(blob);
+
+          setCompressedUrl(url);
           setCompressedSize(blob.size);
-
-          const downloadUrl = URL.createObjectURL(blob);
-          const link = document.createElement("a");
-
-          link.href = downloadUrl;
-          link.download = "KaamKit-compressed-image.jpg";
-          link.click();
-
-          URL.revokeObjectURL(downloadUrl);
         },
         "image/jpeg",
-        compressionQuality
+        quality / 100
       );
     };
+
+    img.src = URL.createObjectURL(file);
   };
 
   const formatSize = (bytes) => {
-    if (bytes < 1024) return bytes + " B";
-    if (bytes < 1024 * 1024)
-      return (bytes / 1024).toFixed(1) + " KB";
+    if (!bytes) return "0 KB";
 
-    return (bytes / (1024 * 1024)).toFixed(2) + " MB";
+    const kb = bytes / 1024;
+
+    if (kb < 1024) {
+      return `${kb.toFixed(1)} KB`;
+    }
+
+    return `${(kb / 1024).toFixed(2)} MB`;
   };
 
   return (
     <main
       style={{
         maxWidth: "700px",
-        margin: "0 auto",
-        padding: "40px 20px",
+        margin: "40px auto",
+        padding: "20px",
         fontFamily: "Arial, sans-serif",
-        textAlign: "center",
       }}
     >
-      <h1 style={{ fontSize: "40px" }}>
-        KaamKit
-      </h1>
+      <h1>Image Compressor</h1>
 
-      <h2>Image Compressor</h2>
-
-      <p style={{ color: "#666" }}>
-        Compress your image and download a smaller file.
+      <p>
+        Compress your images online for free without installing any software.
       </p>
 
-      <div
-        style={{
-          border: "2px dashed #999",
-          borderRadius: "12px",
-          padding: "35px 20px",
-          marginTop: "30px",
-        }}
-      >
-        <input
-          type="file"
-          accept="image/*"
-          onChange={handleFile}
-        />
+      <input
+        type="file"
+        accept="image/*"
+        onChange={handleFile}
+      />
 
-        {file && (
-          <div style={{ marginTop: "20px" }}>
-            <p>
-              <strong>Original:</strong>{" "}
-              {formatSize(file.size)}
-            </p>
+      {preview && (
+        <div style={{ marginTop: "25px" }}>
+          <h3>Selected Image</h3>
 
-            {preview && (
-              <img
-                src={preview}
-                alt="Preview"
-                style={{
-                  maxWidth: "100%",
-                  maxHeight: "300px",
-                  borderRadius: "8px",
-                  marginTop: "10px",
-                }}
-              />
-            )}
+          <img
+            src={preview}
+            alt="Preview"
+            style={{
+              maxWidth: "100%",
+              maxHeight: "300px",
+              borderRadius: "10px",
+            }}
+          />
 
-            <div style={{ marginTop: "25px" }}>
-              <label>
-                Compression Quality:{" "}
-                <strong>{quality}%</strong>
-              </label>
+          <p>
+            Original size: <strong>{formatSize(originalSize)}</strong>
+          </p>
 
-              <br />
+          <label>
+            Compression Quality: <strong>{quality}%</strong>
+          </label>
 
-              <input
-                type="range"
-                min="10"
-                max="100"
-                value={quality}
-                onChange={(e) =>
-                  setQuality(Number(e.target.value))
-                }
-                style={{
-                  width: "80%",
-                  marginTop: "15px",
-                }}
-              />
-            </div>
+          <input
+            type="range"
+            min="10"
+            max="100"
+            value={quality}
+            onChange={(e) => setQuality(Number(e.target.value))}
+            style={{
+              width: "100%",
+              margin: "15px 0",
+            }}
+          />
 
-            <button
-              onClick={compressImage}
-              style={{
-                marginTop: "25px",
-                padding: "14px 25px",
-                fontSize: "18px",
-                borderRadius: "8px",
-                border: "none",
-                background: "#111",
-                color: "white",
-                cursor: "pointer",
-              }}
-            >
-              Compress & Download
-            </button>
+          <button
+            onClick={compressImage}
+            style={{
+              padding: "12px 20px",
+              cursor: "pointer",
+              borderRadius: "8px",
+              border: "none",
+            }}
+          >
+            Compress Image
+          </button>
+        </div>
+      )}
 
-            {compressedSize && (
-              <p style={{ marginTop: "20px" }}>
-                Compressed Size:{" "}
-                <strong>{formatSize(compressedSize)}</strong>
-              </p>
-            )}
-          </div>
-        )}
-      </div>
+      {compressedUrl && (
+        <div style={{ marginTop: "30px" }}>
+          <h3>Compression Complete ✅</h3>
 
-      <p style={{ marginTop: "30px", color: "#777" }}>
-        Your image is processed in your browser.
-      </p>
+          <p>
+            Compressed size:{" "}
+            <strong>{formatSize(compressedSize)}</strong>
+          </p>
+
+          <p>
+            Size reduced by:{" "}
+            <strong>
+              {originalSize
+                ? Math.max(
+                    0,
+                    Math.round(
+                      ((originalSize - compressedSize) / originalSize) * 100
+                    )
+                  )
+                : 0}
+              %
+            </strong>
+          </p>
+
+          <a
+            href={compressedUrl}
+            download="kaamkit-compressed.jpg"
+            style={{
+              display: "inline-block",
+              padding: "12px 20px",
+              borderRadius: "8px",
+              textDecoration: "none",
+            }}
+          >
+            Download Compressed Image
+          </a>
+        </div>
+      )}
     </main>
   );
-}
+                }
