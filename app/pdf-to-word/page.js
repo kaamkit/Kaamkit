@@ -16,28 +16,38 @@ export default function PdfToWord() {
 
     try {
       setLoading(true);
-      setMessage("Reading PDF...");
+      setMessage("Loading PDF converter...");
 
       // Load PDF.js only in the browser
       const pdfjsLib = await import(
         "pdfjs-dist/legacy/build/pdf.mjs"
       );
 
+      // PDF.js worker configuration
+      pdfjsLib.GlobalWorkerOptions.workerSrc =
+        "https://unpkg.com/pdfjs-dist@6.2.108/legacy/build/pdf.worker.min.mjs";
+
+      setMessage("Reading PDF...");
+
       const arrayBuffer = await file.arrayBuffer();
 
       const pdf = await pdfjsLib.getDocument({
         data: new Uint8Array(arrayBuffer),
-        disableWorker: true,
       }).promise;
 
       const paragraphs = [];
 
-      for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
+      for (
+        let pageNumber = 1;
+        pageNumber <= pdf.numPages;
+        pageNumber++
+      ) {
         setMessage(
           `Reading page ${pageNumber} of ${pdf.numPages}...`
         );
 
         const page = await pdf.getPage(pageNumber);
+
         const textContent = await page.getTextContent();
 
         let currentLine = "";
@@ -48,6 +58,7 @@ export default function PdfToWord() {
 
           const currentY = item.transform?.[5] ?? 0;
 
+          // Detect a new line
           if (
             previousY !== null &&
             Math.abs(currentY - previousY) > 5
@@ -75,6 +86,7 @@ export default function PdfToWord() {
           previousY = currentY;
         }
 
+        // Add remaining text from page
         if (currentLine.trim()) {
           paragraphs.push(
             new Paragraph({
@@ -91,10 +103,16 @@ export default function PdfToWord() {
           );
         }
 
+        // Page break
         if (pageNumber < pdf.numPages) {
           paragraphs.push(
             new Paragraph({
-              children: [new TextRun("")],
+              children: [
+                new TextRun({
+                  text: "",
+                }),
+                ],
+              pageBreakBefore: true,
             })
           );
         }
@@ -119,9 +137,10 @@ export default function PdfToWord() {
 
       const blob = await Packer.toBlob(doc);
 
+      // Download Word file
       const downloadUrl = URL.createObjectURL(blob);
-      const link = document.createElement("a");
 
+      const link = document.createElement("a");
       link.href = downloadUrl;
       link.download =
         file.name.replace(/\.pdf$/i, "") + ".docx";
@@ -132,9 +151,11 @@ export default function PdfToWord() {
 
       URL.revokeObjectURL(downloadUrl);
 
-      setMessage("✅ PDF successfully converted to Word!");
+      setMessage(
+        "✅ PDF successfully converted to Word!"
+      );
     } catch (error) {
-      console.error("PDF to Word error:", error);
+      console.error("PDF to Word Error:", error);
 
       setMessage(
         "Conversion failed: " +
@@ -153,24 +174,37 @@ export default function PdfToWord() {
         background: "#f5f7fa",
         display: "flex",
         justifyContent: "center",
+        alignItems: "flex-start",
       }}
     >
       <div
         style={{
           width: "100%",
           maxWidth: "600px",
-          background: "#fff",
+          background: "#ffffff",
           padding: "35px",
+          marginTop: "30px",
           borderRadius: "18px",
           boxShadow: "0 8px 30px rgba(0,0,0,0.08)",
           textAlign: "center",
         }}
       >
-        <h1 style={{ fontSize: "32px", marginBottom: "10px" }}>
+        <h1
+          style={{
+            fontSize: "36px",
+            marginBottom: "10px",
+          }}
+        >
           PDF to Word
         </h1>
 
-        <p style={{ color: "#666", marginBottom: "25px" }}>
+        <p
+          style={{
+            color: "#666",
+            fontSize: "18px",
+            marginBottom: "30px",
+          }}
+        >
           Convert your PDF files into editable Word documents.
         </p>
 
@@ -187,11 +221,18 @@ export default function PdfToWord() {
             border: "1px solid #ddd",
             borderRadius: "10px",
             marginBottom: "20px",
+            boxSizing: "border-box",
           }}
         />
 
         {file && (
-          <p style={{ marginBottom: "20px" }}>
+          <p
+            style={{
+              marginBottom: "20px",
+              color: "#333",
+              wordBreak: "break-word",
+            }}
+          >
             Selected: <strong>{file.name}</strong>
           </p>
         )}
@@ -201,26 +242,32 @@ export default function PdfToWord() {
           disabled={loading}
           style={{
             width: "100%",
-            padding: "15px",
+            padding: "16px",
             border: "none",
             borderRadius: "10px",
             background: loading ? "#999" : "#111827",
-            color: "#fff",
-            fontSize: "17px",
+            color: "#ffffff",
+            fontSize: "18px",
             fontWeight: "600",
-            cursor: loading ? "not-allowed" : "pointer",
+            cursor: loading
+              ? "not-allowed"
+              : "pointer",
           }}
         >
-          {loading ? "Converting..." : "Convert to Word"}
+          {loading
+            ? "Converting..."
+            : "Convert to Word"}
         </button>
 
         {message && (
           <p
             style={{
-              marginTop: "20px",
+              marginTop: "22px",
               color: message.startsWith("✅")
                 ? "green"
                 : "#555",
+              fontSize: "16px",
+              lineHeight: "1.5",
             }}
           >
             {message}
