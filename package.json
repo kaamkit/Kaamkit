@@ -11,5 +11,5 @@
     "next": "latest",
     "react": "latest",
     "react-dom": "latest"
-  }
-}
+  "jspdf": "latest"}
+
