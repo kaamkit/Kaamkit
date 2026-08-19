@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Document, Packer, Paragraph, TextRun } from "docx";
-import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
 
 export default function PdfToWord() {
   const [file, setFile] = useState(null);
@@ -17,46 +16,71 @@ export default function PdfToWord() {
 
     try {
       setLoading(true);
-      setMessage("Converting PDF to Word...");
+      setMessage("Reading PDF...");
+
+      // Load PDF.js only in the browser
+      const pdfjsLib = await import(
+        "pdfjs-dist/legacy/build/pdf.mjs"
+      );
 
       const arrayBuffer = await file.arrayBuffer();
 
       const pdf = await pdfjsLib.getDocument({
-        data: arrayBuffer,
+        data: new Uint8Array(arrayBuffer),
         disableWorker: true,
       }).promise;
 
       const paragraphs = [];
 
       for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
+        setMessage(
+          `Reading page ${pageNumber} of ${pdf.numPages}...`
+        );
+
         const page = await pdf.getPage(pageNumber);
         const textContent = await page.getTextContent();
 
-        let pageText = "";
-        let lastY = null;
+        let currentLine = "";
+        let previousY = null;
 
         for (const item of textContent.items) {
-          const text = item.str || "";
+          if (!item.str) continue;
 
-          if (lastY !== null && Math.abs(item.transform[5] - lastY) > 5) {
-            pageText += "\n";
+          const currentY = item.transform?.[5] ?? 0;
+
+          if (
+            previousY !== null &&
+            Math.abs(currentY - previousY) > 5
+          ) {
+            if (currentLine.trim()) {
+              paragraphs.push(
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: currentLine.trim(),
+                      size: 22,
+                    }),
+                  ],
+                  spacing: {
+                    after: 120,
+                  },
+                })
+              );
+            }
+
+            currentLine = "";
           }
 
-          pageText += text + " ";
-          lastY = item.transform[5];
+          currentLine += item.str + " ";
+          previousY = currentY;
         }
 
-        const lines = pageText
-          .split("\n")
-          .map((line) => line.trim())
-          .filter(Boolean);
-
-        lines.forEach((line) => {
+        if (currentLine.trim()) {
           paragraphs.push(
             new Paragraph({
               children: [
                 new TextRun({
-                  text: line,
+                  text: currentLine.trim(),
                   size: 22,
                 }),
               ],
@@ -65,7 +89,7 @@ export default function PdfToWord() {
               },
             })
           );
-        });
+        }
 
         if (pageNumber < pdf.numPages) {
           paragraphs.push(
@@ -78,9 +102,11 @@ export default function PdfToWord() {
 
       if (paragraphs.length === 0) {
         throw new Error(
-          "No selectable text found. This may be a scanned/image PDF."
+          "No readable text was found in this PDF."
         );
       }
+
+      setMessage("Creating Word document...");
 
       const doc = new Document({
         sections: [
@@ -93,22 +119,26 @@ export default function PdfToWord() {
 
       const blob = await Packer.toBlob(doc);
 
-      const url = URL.createObjectURL(blob);
+      const downloadUrl = URL.createObjectURL(blob);
       const link = document.createElement("a");
 
-      link.href = url;
-      link.download = file.name.replace(/\.pdf$/i, "") + ".docx";
+      link.href = downloadUrl;
+      link.download =
+        file.name.replace(/\.pdf$/i, "") + ".docx";
+
       document.body.appendChild(link);
       link.click();
-      link.remove();
+      document.body.removeChild(link);
 
-      URL.revokeObjectURL(url);
+      URL.revokeObjectURL(downloadUrl);
 
-      setMessage("PDF successfully converted to Word!");
+      setMessage("✅ PDF successfully converted to Word!");
     } catch (error) {
-      console.error(error);
+      console.error("PDF to Word error:", error);
+
       setMessage(
-        "Conversion failed. Please try a normal text-based PDF."
+        "Conversion failed: " +
+          (error?.message || "Unknown error")
       );
     } finally {
       setLoading(false);
@@ -129,7 +159,7 @@ export default function PdfToWord() {
         style={{
           width: "100%",
           maxWidth: "600px",
-          background: "#ffffff",
+          background: "#fff",
           padding: "35px",
           borderRadius: "18px",
           boxShadow: "0 8px 30px rgba(0,0,0,0.08)",
@@ -161,7 +191,7 @@ export default function PdfToWord() {
         />
 
         {file && (
-          <p style={{ marginBottom: "20px", color: "#333" }}>
+          <p style={{ marginBottom: "20px" }}>
             Selected: <strong>{file.name}</strong>
           </p>
         )}
@@ -188,7 +218,7 @@ export default function PdfToWord() {
           <p
             style={{
               marginTop: "20px",
-              color: message.includes("successfully")
+              color: message.startsWith("✅")
                 ? "green"
                 : "#555",
             }}
