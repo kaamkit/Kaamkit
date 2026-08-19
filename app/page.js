@@ -31,8 +31,27 @@ export default function Home() {
     {
       name: "QR Generator",
       icon: "🔲",
-      description: "Generate QR codes for text, links and other information.",
+      description:
+        "Generate QR codes for text, links and other information.",
       link: "/qr-generator",
+    },
+    {
+      name: "PDF to Word",
+      icon: "📄",
+      description: "Convert PDF files into editable Word documents.",
+      link: "/pdf-to-word",
+    },
+    {
+      name: "PDF to Excel",
+      icon: "📊",
+      description: "Convert PDF files into Excel spreadsheets.",
+      link: "/pdf-to-excel",
+    },
+    {
+      name: "Word to Excel",
+      icon: "📝",
+      description: "Convert Word documents into Excel spreadsheets.",
+      link: "/word-to-excel",
     },
   ];
 
@@ -122,7 +141,9 @@ export default function Home() {
         <div style={styles.features}>
           <div style={styles.feature}>
             <div style={styles.featureIcon}>⚡</div>
+
             <h3 style={styles.featureTitle}>Fast</h3>
+
             <p style={styles.featureText}>
               Get your work done quickly without complicated steps.
             </p>
@@ -130,7 +151,9 @@ export default function Home() {
 
           <div style={styles.feature}>
             <div style={styles.featureIcon}>🔒</div>
+
             <h3 style={styles.featureTitle}>Privacy Friendly</h3>
+
             <p style={styles.featureText}>
               Your files are processed directly in your browser whenever
               possible.
@@ -139,7 +162,9 @@ export default function Home() {
 
           <div style={styles.feature}>
             <div style={styles.featureIcon}>💯</div>
+
             <h3 style={styles.featureTitle}>Free to Use</h3>
+
             <p style={styles.featureText}>
               Useful everyday tools without registration or unnecessary
               barriers.
