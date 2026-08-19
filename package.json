@@ -1,6 +1,6 @@
 {
   "name": "kaamkit",
-  "": "1.0.0",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -10,7 +10,9 @@
   "dependencies": {
     "next": "latest",
     "react": "latest",
-    "react-dom": "latest"
+    "react-dom": "latest",
   "jspdf": "latest"}
+}
+
 
   
