@@ -8,10 +8,13 @@
     "start": "next start"
   },
   "dependencies": {
-    "next": "latest",
-    "react": "latest",
-    "react-dom": "latest",
-  "jspdf": "latest"}
+  "next": "latest",
+  "react": "latest",
+  "react-dom": "latest",
+  "jspdf": "latest",
+  "pdfjs-dist": "6.2.108",
+  "docx": "9.7.1"
+  }
 }
 
 
