@@ -26,7 +26,7 @@ export default function Home() {
       description: "Calculate GST amount quickly and easily.",
       icon: "🧮",
       link: "/gst-calculator",
-      active: false,
+      active: true,
     },
     {
       name: "QR Generator",
