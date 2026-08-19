@@ -1,172 +1,464 @@
+"use client";
+
+import Link from "next/link";
+
 export default function Home() {
   const tools = [
     {
       name: "JPG to PDF",
-      description: "Convert JPG images into PDF files easily.",
       icon: "📄",
+      description: "Convert JPG images into PDF files easily.",
       link: "/jpg-to-pdf",
-      active: true,
     },
     {
       name: "Image Compressor",
-      description: "Reduce image size while maintaining quality.",
       icon: "🗜️",
+      description: "Reduce image size while maintaining good quality.",
       link: "/image-compressor",
-      active: true,
     },
     {
       name: "Image Resizer",
-      description: "Resize images to your required dimensions.",
       icon: "📐",
+      description: "Resize images to your required dimensions.",
       link: "/image-resizer",
-      active: true,
     },
     {
       name: "GST Calculator",
-      description: "Calculate GST amount quickly and easily.",
       icon: "🧮",
+      description: "Calculate GST, CGST, SGST and total amount quickly.",
       link: "/gst-calculator",
-      active: true,
     },
     {
       name: "QR Generator",
-      description: "Generate QR codes quickly for your needs.",
-      icon: "🔳",
+      icon: "🔲",
+      description: "Generate QR codes for text, links and other information.",
       link: "/qr-generator",
-      active: true,
     },
   ];
 
   return (
-    <main style={styles.main}>
+    <main style={styles.page}>
+      {/* HEADER */}
+      <header style={styles.header}>
+        <Link href="/" style={styles.logo}>
+          KaamKit
+        </Link>
+
+        <nav style={styles.nav}>
+          <a href="#tools" style={styles.navLink}>
+            Tools
+          </a>
+
+          <a href="#why" style={styles.navLink}>
+            Why KaamKit?
+          </a>
+        </nav>
+      </header>
+
+      {/* HERO */}
       <section style={styles.hero}>
-        <div style={styles.logo}>KaamKit</div>
+        <div style={styles.badge}>⚡ Free • Fast • Simple</div>
 
-        <h1 style={styles.title}>Free Online Tools</h1>
+        <h1 style={styles.heroTitle}>
+          Powerful tools for
+          <br />
+          <span style={styles.highlight}>everyday work.</span>
+        </h1>
 
-        <p style={styles.subtitle}>
-          Simple, fast and free tools for everyday work.
+        <p style={styles.heroText}>
+          Convert, compress, resize, calculate and generate —
+          <br />
+          everything you need in one simple place.
+        </p>
+
+        <a href="#tools" style={styles.heroButton}>
+          Explore Free Tools →
+        </a>
+
+        <div style={styles.trust}>
+          <span>✓ 100% Free</span>
+          <span>✓ No Registration</span>
+          <span>✓ Easy to Use</span>
+        </div>
+      </section>
+
+      {/* TOOLS */}
+      <section id="tools" style={styles.toolsSection}>
+        <div style={styles.sectionHeading}>
+          <div style={styles.smallTitle}>OUR TOOLS</div>
+
+          <h2 style={styles.sectionTitle}>Everything you need</h2>
+
+          <p style={styles.sectionText}>
+            Simple online tools designed to save your time.
+          </p>
+        </div>
+
+        <div style={styles.grid}>
+          {tools.map((tool) => (
+            <div key={tool.name} style={styles.card}>
+              <div style={styles.iconBox}>{tool.icon}</div>
+
+              <h3 style={styles.cardTitle}>{tool.name}</h3>
+
+              <p style={styles.cardText}>{tool.description}</p>
+
+              <Link href={tool.link} style={styles.cardButton}>
+                Open Tool →
+              </Link>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* WHY KAAMKIT */}
+      <section id="why" style={styles.whySection}>
+        <div style={styles.smallTitle}>WHY KAAMKIT?</div>
+
+        <h2 style={styles.sectionTitle}>
+          Work smarter. Get things done.
+        </h2>
+
+        <div style={styles.features}>
+          <div style={styles.feature}>
+            <div style={styles.featureIcon}>⚡</div>
+            <h3 style={styles.featureTitle}>Fast</h3>
+            <p style={styles.featureText}>
+              Get your work done quickly without complicated steps.
+            </p>
+          </div>
+
+          <div style={styles.feature}>
+            <div style={styles.featureIcon}>🔒</div>
+            <h3 style={styles.featureTitle}>Privacy Friendly</h3>
+            <p style={styles.featureText}>
+              Your files are processed directly in your browser whenever
+              possible.
+            </p>
+          </div>
+
+          <div style={styles.feature}>
+            <div style={styles.featureIcon}>💯</div>
+            <h3 style={styles.featureTitle}>Free to Use</h3>
+            <p style={styles.featureText}>
+              Useful everyday tools without registration or unnecessary
+              barriers.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section style={styles.cta}>
+        <div style={styles.ctaBadge}>🚀 MORE TOOLS COMING</div>
+
+        <h2 style={styles.ctaTitle}>
+          More useful tools are on the way.
+        </h2>
+
+        <p style={styles.ctaText}>
+          KaamKit is growing to become your everyday online toolbox.
         </p>
       </section>
 
-      <section style={styles.grid}>
-        {tools.map((tool) => (
-          <div key={tool.name} style={styles.card}>
-            <div style={styles.icon}>{tool.icon}</div>
-
-            <h2 style={styles.cardTitle}>{tool.name}</h2>
-
-            <p style={styles.description}>{tool.description}</p>
-
-            {tool.active ? (
-              <a href={tool.link} style={styles.button}>
-                Open Tool →
-              </a>
-            ) : (
-              <button style={styles.comingSoon} disabled>
-                Coming Soon
-              </button>
-            )}
-          </div>
-        ))}
-      </section>
-
+      {/* FOOTER */}
       <footer style={styles.footer}>
-        <p>© 2026 KaamKit. Free online tools for everyone.</p>
+        <div>
+          <Link href="/" style={styles.footerLogo}>
+            KaamKit
+          </Link>
+
+          <p style={styles.footerText}>
+            Free online tools for everyday work.
+          </p>
+        </div>
+
+        <div style={styles.footerRight}>
+          © {new Date().getFullYear()} KaamKit
+        </div>
       </footer>
     </main>
   );
 }
 
 const styles = {
-  main: {
+  page: {
     minHeight: "100vh",
-    background: "#f7f8fa",
+    background:
+      "linear-gradient(180deg, #f8fafc 0%, #ffffff 45%, #f8fafc 100%)",
     color: "#111827",
-    padding: "40px 20px",
-    fontFamily: "Arial, sans-serif",
+    fontFamily: "Arial, Helvetica, sans-serif",
   },
 
-  hero: {
-    textAlign: "center",
-    maxWidth: "800px",
-    margin: "0 auto 40px",
+  header: {
+    maxWidth: "1100px",
+    margin: "0 auto",
+    padding: "22px 24px",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
 
   logo: {
-    fontSize: "42px",
+    fontSize: "28px",
     fontWeight: "800",
-    marginBottom: "15px",
+    letterSpacing: "-1px",
+    color: "#111827",
+    textDecoration: "none",
   },
 
-  title: {
-    fontSize: "32px",
-    margin: "0 0 12px",
+  nav: {
+    display: "flex",
+    gap: "26px",
+    alignItems: "center",
   },
 
-  subtitle: {
-    fontSize: "18px",
+  navLink: {
+    color: "#4b5563",
+    textDecoration: "none",
+    fontSize: "15px",
+    fontWeight: "600",
+  },
+
+  hero: {
+    maxWidth: "900px",
+    margin: "0 auto",
+    textAlign: "center",
+    padding: "65px 24px 85px",
+  },
+
+  badge: {
+    display: "inline-block",
+    background: "#eef2ff",
+    color: "#4f46e5",
+    padding: "9px 16px",
+    borderRadius: "999px",
+    fontSize: "14px",
+    fontWeight: "700",
+    marginBottom: "24px",
+  },
+
+  heroTitle: {
+    fontSize: "clamp(48px, 8vw, 82px)",
+    lineHeight: "1.02",
+    letterSpacing: "-4px",
+    margin: "0",
+    fontWeight: "800",
+  },
+
+  highlight: {
+    background: "linear-gradient(90deg, #2563eb, #7c3aed)",
+    WebkitBackgroundClip: "text",
+    WebkitTextFillColor: "transparent",
+  },
+
+  heroText: {
+    fontSize: "20px",
+    lineHeight: "1.6",
     color: "#6b7280",
-    margin: 0,
+    margin: "28px 0 34px",
+  },
+
+  heroButton: {
+    display: "inline-block",
+    background: "#111827",
+    color: "#ffffff",
+    padding: "16px 26px",
+    borderRadius: "12px",
+    textDecoration: "none",
+    fontSize: "17px",
+    fontWeight: "700",
+    boxShadow: "0 12px 30px rgba(17, 24, 39, 0.18)",
+  },
+
+  trust: {
+    marginTop: "28px",
+    display: "flex",
+    justifyContent: "center",
+    flexWrap: "wrap",
+    gap: "20px",
+    color: "#6b7280",
+    fontSize: "14px",
+  },
+
+  toolsSection: {
+    maxWidth: "1100px",
+    margin: "0 auto",
+    padding: "70px 24px",
+  },
+
+  sectionHeading: {
+    textAlign: "center",
+    marginBottom: "45px",
+  },
+
+  smallTitle: {
+    color: "#4f46e5",
+    fontSize: "13px",
+    fontWeight: "800",
+    letterSpacing: "2px",
+    marginBottom: "12px",
+  },
+
+  sectionTitle: {
+    fontSize: "42px",
+    lineHeight: "1.15",
+    letterSpacing: "-1.5px",
+    margin: "0 0 12px",
+    fontWeight: "800",
+  },
+
+  sectionText: {
+    color: "#6b7280",
+    fontSize: "18px",
+    lineHeight: "1.5",
+    margin: "0",
   },
 
   grid: {
-    maxWidth: "1000px",
-    margin: "0 auto",
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-    gap: "20px",
+    gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+    gap: "22px",
   },
 
   card: {
-    background: "#ffffff",
+    background: "rgba(255, 255, 255, 0.95)",
     border: "1px solid #e5e7eb",
-    borderRadius: "18px",
-    padding: "25px",
-    boxShadow: "0 5px 20px rgba(0,0,0,0.06)",
+    borderRadius: "22px",
+    padding: "30px",
+    minHeight: "300px",
+    display: "flex",
+    flexDirection: "column",
+    boxShadow: "0 10px 30px rgba(15, 23, 42, 0.06)",
   },
 
-  icon: {
-    fontSize: "40px",
-    marginBottom: "15px",
+  iconBox: {
+    width: "62px",
+    height: "62px",
+    borderRadius: "17px",
+    background: "#f1f5f9",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "31px",
+    marginBottom: "22px",
   },
 
   cardTitle: {
-    fontSize: "22px",
+    fontSize: "25px",
+    lineHeight: "1.2",
+    margin: "0 0 12px",
+    fontWeight: "750",
+  },
+
+  cardText: {
+    color: "#6b7280",
+    fontSize: "16px",
+    lineHeight: "1.6",
+    margin: "0 0 25px",
+  },
+
+  cardButton: {
+    marginTop: "auto",
+    display: "block",
+    textAlign: "center",
+    background: "#111827",
+    color: "#ffffff",
+    padding: "13px 18px",
+    borderRadius: "10px",
+    textDecoration: "none",
+    fontWeight: "700",
+  },
+
+  whySection: {
+    maxWidth: "1100px",
+    margin: "0 auto",
+    padding: "90px 24px",
+    textAlign: "center",
+  },
+
+  features: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+    gap: "25px",
+    marginTop: "45px",
+  },
+
+  feature: {
+    padding: "25px",
+  },
+
+  featureIcon: {
+    fontSize: "38px",
+    marginBottom: "12px",
+  },
+
+  featureTitle: {
+    fontSize: "21px",
     margin: "0 0 10px",
   },
 
-  description: {
+  featureText: {
     color: "#6b7280",
-    lineHeight: "1.5",
-    minHeight: "48px",
+    lineHeight: "1.6",
+    margin: "0",
   },
 
-  button: {
-    display: "inline-block",
-    marginTop: "15px",
-    padding: "12px 18px",
-    background: "#111827",
+  cta: {
+    maxWidth: "1000px",
+    margin: "30px auto 90px",
+    padding: "65px 25px",
+    textAlign: "center",
+    borderRadius: "28px",
+    background: "linear-gradient(135deg, #111827, #312e81)",
     color: "#ffffff",
-    textDecoration: "none",
-    borderRadius: "10px",
-    fontWeight: "600",
   },
 
-  comingSoon: {
-    marginTop: "15px",
-    padding: "12px 18px",
-    background: "#e5e7eb",
-    color: "#6b7280",
-    border: "none",
-    borderRadius: "10px",
-    fontWeight: "600",
+  ctaBadge: {
+    fontSize: "13px",
+    fontWeight: "800",
+    letterSpacing: "1.5px",
+    marginBottom: "15px",
+  },
+
+  ctaTitle: {
+    fontSize: "38px",
+    lineHeight: "1.2",
+    margin: "0 0 15px",
+  },
+
+  ctaText: {
+    fontSize: "17px",
+    lineHeight: "1.5",
+    color: "#d1d5db",
+    margin: "0",
   },
 
   footer: {
-    textAlign: "center",
-    marginTop: "50px",
-    color: "#9ca3af",
+    maxWidth: "1100px",
+    margin: "0 auto",
+    padding: "35px 24px",
+    borderTop: "1px solid #e5e7eb",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: "20px",
+  },
+
+  footerLogo: {
+    fontSize: "22px",
+    fontWeight: "800",
+    color: "#111827",
+    textDecoration: "none",
+  },
+
+  footerText: {
+    color: "#6b7280",
+    margin: "7px 0 0",
+  },
+
+  footerRight: {
+    color: "#6b7280",
     fontSize: "14px",
   },
 };
