@@ -33,7 +33,7 @@ export default function Home() {
       description: "Generate QR codes quickly for your needs.",
       icon: "🔳",
       link: "/qr-generator",
-      active: false,
+      active: true,
     },
   ];
 
