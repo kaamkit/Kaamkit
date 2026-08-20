@@ -1,63 +1,52 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 
 export default function ImageResizer() {
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState("");
-  const [originalWidth, setOriginalWidth] = useState(0);
-  const [originalHeight, setOriginalHeight] = useState(0);
-
   const [width, setWidth] = useState("");
   const [height, setHeight] = useState("");
-
+  const [originalWidth, setOriginalWidth] = useState(0);
+  const [originalHeight, setOriginalHeight] = useState(0);
   const [keepRatio, setKeepRatio] = useState(true);
   const [format, setFormat] = useState("image/jpeg");
   const [quality, setQuality] = useState(90);
-
-  const [resizedPreview, setResizedPreview] = useState("");
-  const [processing, setProcessing] = useState(false);
+  const [result, setResult] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const canvasRef = useRef(null);
 
-  const handleFile = (event) => {
-    const selectedFile = event.target.files?.[0];
+  const uploadImage = (event) => {
+    const selected = event.target.files?.[0];
 
-    if (!selectedFile) return;
+    if (!selected) return;
 
-    if (!selectedFile.type.startsWith("image/")) {
-      alert("Please select a valid image.");
+    if (!selected.type.startsWith("image/")) {
+      alert("Please select an image file.");
       return;
     }
 
-    setFile(selectedFile);
-    setResizedPreview("");
+    setFile(selected);
+    setResult("");
 
-    const imageUrl = URL.createObjectURL(selectedFile);
+    const url = URL.createObjectURL(selected);
+    setPreview(url);
 
     const image = new Image();
 
     image.onload = () => {
       setOriginalWidth(image.width);
       setOriginalHeight(image.height);
-
       setWidth(image.width);
       setHeight(image.height);
-
-      setPreview(imageUrl);
-
-      URL.revokeObjectURL(imageUrl);
     };
 
-    image.onerror = () => {
-      URL.revokeObjectURL(imageUrl);
-      alert("Unable to read this image.");
-    };
-
-    image.src = imageUrl;
+    image.src = url;
   };
 
-  const handleWidthChange = (value) => {
+  const changeWidth = (value) => {
     setWidth(value);
 
     if (
@@ -66,16 +55,16 @@ export default function ImageResizer() {
       originalHeight > 0 &&
       value
     ) {
-      const newHeight = Math.round(
-        (Number(value) * originalHeight) /
-          originalWidth
+      setHeight(
+        Math.round(
+          (Number(value) * originalHeight) /
+            originalWidth
+        )
       );
-
-      setHeight(newHeight);
     }
   };
 
-  const handleHeightChange = (value) => {
+  const changeHeight = (value) => {
     setHeight(value);
 
     if (
@@ -84,12 +73,12 @@ export default function ImageResizer() {
       originalHeight > 0 &&
       value
     ) {
-      const newWidth = Math.round(
-        (Number(value) * originalWidth) /
-          originalHeight
+      setWidth(
+        Math.round(
+          (Number(value) * originalWidth) /
+            originalHeight
+        )
       );
-
-      setWidth(newWidth);
     }
   };
 
@@ -113,11 +102,11 @@ export default function ImageResizer() {
     }
 
     if (newWidth > 10000 || newHeight > 10000) {
-      alert("Maximum size allowed is 10000 × 10000 pixels.");
+      alert("Maximum size is 10000 × 10000 pixels.");
       return;
     }
 
-    setProcessing(true);
+    setLoading(true);
 
     const image = new Image();
 
@@ -130,7 +119,12 @@ export default function ImageResizer() {
 
         const ctx = canvas.getContext("2d");
 
-        ctx.clearRect(0, 0, newWidth, newHeight);
+        ctx.clearRect(
+          0,
+          0,
+          newWidth,
+          newHeight
+        );
 
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = "high";
@@ -151,17 +145,17 @@ export default function ImageResizer() {
                 quality / 100
               );
 
-        setResizedPreview(output);
+        setResult(output);
       } catch (error) {
         console.error(error);
-        alert("Image resizing failed.");
-      } finally {
-        setProcessing(false);
+        alert("Unable to resize this image.");
       }
+
+      setLoading(false);
     };
 
     image.onerror = () => {
-      setProcessing(false);
+      setLoading(false);
       alert("Unable to process this image.");
     };
 
@@ -169,8 +163,8 @@ export default function ImageResizer() {
   };
 
   const downloadImage = () => {
-    if (!resizedPreview) {
-      alert("Please resize the image first.");
+    if (!result) {
+      alert("Resize the image first.");
       return;
     }
 
@@ -179,29 +173,29 @@ export default function ImageResizer() {
         ? "png"
         : "jpg";
 
-    const originalName =
+    const name =
       file?.name?.replace(/\.[^/.]+$/, "") ||
-      "kaamkit-resized-image";
+      "kaamkit-image";
 
     const link = document.createElement("a");
 
-    link.href = resizedPreview;
+    link.href = result;
     link.download =
-      `${originalName}-${width}x${height}.${extension}`;
+      `${name}-${width}x${height}.${extension}`;
 
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
-  const resetTool = () => {
+  const reset = () => {
     setFile(null);
     setPreview("");
-    setResizedPreview("");
-    setOriginalWidth(0);
-    setOriginalHeight(0);
+    setResult("");
     setWidth("");
     setHeight("");
+    setOriginalWidth(0);
+    setOriginalHeight(0);
     setQuality(90);
     setFormat("image/jpeg");
   };
@@ -217,11 +211,9 @@ export default function ImageResizer() {
   return (
     <main className="site">
 
-      {/* NAVBAR */}
-
       <nav className="navbar">
 
-        <a href="/" className="logo">
+        <Link href="/" className="logo">
 
           <div className="logoIcon">
             K
@@ -231,20 +223,18 @@ export default function ImageResizer() {
             Kaam<span>Kit</span>
           </span>
 
-        </a>
+        </Link>
 
         <div className="navLinks open">
 
-          <a href="/">Home</a>
-          <a href="/#tools">Tools</a>
-          <a href="/#about">About</a>
-          <a href="/#contact">Contact</a>
+          <Link href="/">Home</Link>
+          <Link href="/#tools">Tools</Link>
+          <Link href="/#about">About</Link>
+          <Link href="/#contact">Contact</Link>
 
         </div>
 
       </nav>
-
-      {/* TOOL HEADER */}
 
       <section className="converterSection">
 
@@ -254,9 +244,7 @@ export default function ImageResizer() {
             ⚡ Free • Fast • Secure
           </div>
 
-          <h1>
-            Image Resizer
-          </h1>
+          <h1>Image Resizer</h1>
 
           <p>
             Resize your JPG, JPEG, PNG or WebP
@@ -289,8 +277,8 @@ export default function ImageResizer() {
 
               <input
                 type="file"
-                accept="image/jpeg,image/png,image/webp,image/jpg"
-                onChange={handleFile}
+                accept="image/*"
+                onChange={uploadImage}
                 hidden
               />
 
@@ -300,47 +288,24 @@ export default function ImageResizer() {
 
             <div className="previewArea">
 
-              {/* ORIGINAL IMAGE */}
-
-              <div
-                style={{
-                  width: "100%",
-                  textAlign: "center",
-                  marginBottom: "24px",
-                }}
-              >
-
-                <img
-                  src={preview}
-                  alt="Original"
-                  style={{
-                    maxWidth: "100%",
-                    maxHeight: "320px",
-                    objectFit: "contain",
-                    borderRadius: "16px",
-                  }}
-                />
-
-              </div>
-
-              {/* FILE INFO */}
+              <img
+                src={preview}
+                alt="Original image"
+                className="imagePreview"
+              />
 
               <div className="fileName">
                 {file.name}
               </div>
 
-              <p
-                style={{
-                  textAlign: "center",
-                  color: "#64748b",
-                  marginBottom: "24px",
-                }}
-              >
-                Original: {originalWidth} ×{" "}
+              <p style={{
+                textAlign: "center",
+                color: "#64748b"
+              }}>
+                Original size:{" "}
+                {originalWidth} ×{" "}
                 {originalHeight}px
               </p>
-
-              {/* WIDTH / HEIGHT */}
 
               <div
                 style={{
@@ -348,18 +313,13 @@ export default function ImageResizer() {
                   gridTemplateColumns:
                     "1fr 1fr",
                   gap: "16px",
-                  marginBottom: "20px",
+                  marginTop: "24px"
                 }}
               >
 
                 <div>
-                  <label
-                    style={{
-                      display: "block",
-                      marginBottom: "8px",
-                      fontWeight: "600",
-                    }}
-                  >
+
+                  <label>
                     Width (px)
                   </label>
 
@@ -369,17 +329,18 @@ export default function ImageResizer() {
                     max="10000"
                     value={width}
                     onChange={(e) =>
-                      handleWidthChange(
+                      changeWidth(
                         e.target.value
                       )
                     }
                     style={{
                       width: "100%",
                       padding: "14px",
+                      marginTop: "8px",
                       borderRadius: "12px",
                       border:
                         "1px solid #dbe3ef",
-                      fontSize: "16px",
+                      fontSize: "16px"
                     }}
                   />
 
@@ -387,13 +348,7 @@ export default function ImageResizer() {
 
                 <div>
 
-                  <label
-                    style={{
-                      display: "block",
-                      marginBottom: "8px",
-                      fontWeight: "600",
-                    }}
-                  >
+                  <label>
                     Height (px)
                   </label>
 
@@ -403,17 +358,18 @@ export default function ImageResizer() {
                     max="10000"
                     value={height}
                     onChange={(e) =>
-                      handleHeightChange(
+                      changeHeight(
                         e.target.value
                       )
                     }
                     style={{
                       width: "100%",
                       padding: "14px",
+                      marginTop: "8px",
                       borderRadius: "12px",
                       border:
                         "1px solid #dbe3ef",
-                      fontSize: "16px",
+                      fontSize: "16px"
                     }}
                   />
 
@@ -421,15 +377,12 @@ export default function ImageResizer() {
 
               </div>
 
-              {/* ASPECT RATIO */}
-
               <label
                 style={{
                   display: "flex",
-                  alignItems: "center",
                   gap: "10px",
-                  marginBottom: "20px",
-                  fontWeight: "600",
+                  alignItems: "center",
+                  marginTop: "20px"
                 }}
               >
 
@@ -447,17 +400,11 @@ export default function ImageResizer() {
 
               </label>
 
-              {/* FORMAT */}
+              <div style={{
+                marginTop: "20px"
+              }}>
 
-              <div style={{ marginBottom: "20px" }}>
-
-                <label
-                  style={{
-                    display: "block",
-                    marginBottom: "8px",
-                    fontWeight: "600",
-                  }}
-                >
+                <label>
                   Output Format
                 </label>
 
@@ -469,11 +416,11 @@ export default function ImageResizer() {
                   style={{
                     width: "100%",
                     padding: "14px",
+                    marginTop: "8px",
                     borderRadius: "12px",
                     border:
                       "1px solid #dbe3ef",
-                    fontSize: "16px",
-                    background: "white",
+                    fontSize: "16px"
                   }}
                 >
 
@@ -489,23 +436,13 @@ export default function ImageResizer() {
 
               </div>
 
-              {/* QUALITY */}
-
               {format === "image/jpeg" && (
 
-                <div
-                  style={{
-                    marginBottom: "24px",
-                  }}
-                >
+                <div style={{
+                  marginTop: "20px"
+                }}>
 
-                  <label
-                    style={{
-                      display: "block",
-                      marginBottom: "8px",
-                      fontWeight: "600",
-                    }}
-                  >
+                  <label>
                     JPG Quality: {quality}%
                   </label>
 
@@ -521,6 +458,7 @@ export default function ImageResizer() {
                     }
                     style={{
                       width: "100%",
+                      marginTop: "10px"
                     }}
                   />
 
@@ -528,33 +466,30 @@ export default function ImageResizer() {
 
               )}
 
-              {/* BUTTONS */}
-
               <div
                 style={{
                   display: "flex",
                   gap: "12px",
                   flexWrap: "wrap",
+                  marginTop: "25px"
                 }}
               >
 
                 <button
                   className="primaryButton"
                   onClick={resizeImage}
-                  disabled={processing}
-                  type="button"
+                  disabled={loading}
                 >
-                  {processing
+                  {loading
                     ? "Resizing..."
                     : "Resize Image →"}
                 </button>
 
-                {resizedPreview && (
+                {result && (
 
                   <button
                     className="primaryButton"
                     onClick={downloadImage}
-                    type="button"
                   >
                     Download Image ↓
                   </button>
@@ -563,64 +498,39 @@ export default function ImageResizer() {
 
                 <button
                   className="secondaryButton"
-                  onClick={resetTool}
-                  type="button"
+                  onClick={reset}
                 >
                   Start Over
                 </button>
 
               </div>
 
-              {/* RESULT */}
+              {result && (
 
-              {resizedPreview && (
+                <div style={{
+                  marginTop: "30px",
+                  textAlign: "center"
+                }}>
 
-                <div
-                  style={{
-                    marginTop: "32px",
-                    paddingTop: "28px",
-                    borderTop:
-                      "1px solid #e2e8f0",
-                  }}
-                >
-
-                  <h3
-                    style={{
-                      textAlign: "center",
-                      marginBottom: "18px",
-                    }}
-                  >
+                  <h3>
                     Resized Image
                   </h3>
 
-                  <div
+                  <img
+                    src={result}
+                    alt="Resized result"
                     style={{
-                      textAlign: "center",
+                      maxWidth: "100%",
+                      maxHeight: "400px",
+                      marginTop: "15px",
+                      borderRadius: "16px"
                     }}
-                  >
+                  />
 
-                    <img
-                      src={resizedPreview}
-                      alt="Resized result"
-                      style={{
-                        maxWidth: "100%",
-                        maxHeight: "400px",
-                        objectFit: "contain",
-                        borderRadius: "16px",
-                      }}
-                    />
-
-                  </div>
-
-                  <p
-                    style={{
-                      textAlign: "center",
-                      color: "#64748b",
-                      marginTop: "12px",
-                    }}
-                  >
-                    New size: {width} ×{" "}
-                    {height}px
+                  <p style={{
+                    color: "#64748b"
+                  }}>
+                    New size: {width} × {height}px
                   </p>
 
                 </div>
@@ -640,13 +550,11 @@ export default function ImageResizer() {
         style={{ display: "none" }}
       />
 
-      {/* FOOTER */}
-
       <footer>
 
         <div className="footerBrand">
 
-          <div className="logo">
+          <Link href="/" className="logo">
 
             <div className="logoIcon">
               K
@@ -656,7 +564,7 @@ export default function ImageResizer() {
               Kaam<span>Kit</span>
             </span>
 
-          </div>
+          </Link>
 
           <p>
             Simple Tools. Better Work.
@@ -668,9 +576,9 @@ export default function ImageResizer() {
 
           <h3>Quick Links</h3>
 
-          <a href="/">Home</a>
-          <a href="/#tools">Tools</a>
-          <a href="/#about">About</a>
+          <Link href="/">Home</Link>
+          <Link href="/#tools">Tools</Link>
+          <Link href="/#about">About</Link>
 
         </div>
 
@@ -678,13 +586,13 @@ export default function ImageResizer() {
 
           <h3>Image Tools</h3>
 
-          <a href="/compressor">
+          <Link href="/compressor">
             Image Compressor
-          </a>
+          </Link>
 
-          <a href="/resizer">
+          <Link href="/resizer">
             Image Resizer
-          </a>
+          </Link>
 
         </div>
 
