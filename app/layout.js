@@ -1,4 +1,4 @@
-import "./globals.css";
+
 
 export const metadata = {
   metadataBase: new URL("https://kaamkit-tools.vercel.app"),
