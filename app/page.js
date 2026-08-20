@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { jsPDF } from "jspdf";
 
 const tools = [
   {
@@ -32,13 +33,75 @@ const tools = [
 
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [preview, setPreview] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleFile = (event) => {
+    const file = event.target.files?.[0];
+
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      alert("Please select an image file.");
+      return;
+    }
+
+    setSelectedFile(file);
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      setPreview(reader.result);
+    };
+
+    reader.readAsDataURL(file);
+  };
+
+  const convertToPDF = () => {
+    if (!selectedFile || !preview) {
+      alert("Please select an image first.");
+      return;
+    }
+
+    setLoading(true);
+
+    const image = new Image();
+
+    image.onload = () => {
+      const pdf = new jsPDF({
+        orientation: image.width > image.height ? "landscape" : "portrait",
+        unit: "px",
+        format: [image.width, image.height],
+      });
+
+      pdf.addImage(
+        image,
+        "JPEG",
+        0,
+        0,
+        image.width,
+        image.height
+      );
+
+      pdf.save(
+        selectedFile.name.replace(/\.[^/.]+$/, "") + ".pdf"
+      );
+
+      setLoading(false);
+    };
+
+    image.src = preview;
+  };
 
   return (
     <main className="site">
       <nav className="navbar">
         <div className="logo">
           <div className="logoIcon">K</div>
-          <span>Kaam<span>Kit</span></span>
+          <span>
+            Kaam<span>Kit</span>
+          </span>
         </div>
 
         <button
@@ -73,7 +136,7 @@ export default function Home() {
 
           <div className="searchBox">
             <span>⌕</span>
-            <input placeholder="Search tools... JPG to PDF, QR, GST" />
+            <input placeholder="Search tools..." />
             <button>Search</button>
           </div>
 
@@ -99,19 +162,99 @@ export default function Home() {
         </div>
       </section>
 
+      {/* JPG TO PDF */}
+
+      <section className="converterSection" id="jpg-pdf">
+        <div className="sectionTitle">
+          <h2>JPG to PDF Converter</h2>
+          <p>
+            Convert your JPG, PNG or other images into a PDF instantly.
+          </p>
+        </div>
+
+        <div className="converterCard">
+          {!preview ? (
+            <label className="uploadBox">
+              <div className="uploadIcon">📤</div>
+
+              <h3>Upload an Image</h3>
+
+              <p>
+                JPG, JPEG or PNG
+              </p>
+
+              <span className="uploadButton">
+                Choose Image
+              </span>
+
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFile}
+                hidden
+              />
+            </label>
+          ) : (
+            <div className="previewArea">
+              <img
+                src={preview}
+                alt="Selected image"
+                className="imagePreview"
+              />
+
+              <div className="fileName">
+                {selectedFile?.name}
+              </div>
+
+              <div className="converterActions">
+                <label className="secondaryButton">
+                  Change Image
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFile}
+                    hidden
+                  />
+                </label>
+
+                <button
+                  className="primaryButton"
+                  onClick={convertToPDF}
+                  disabled={loading}
+                >
+                  {loading ? "Creating PDF..." : "Download PDF →"}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* TOOLS */}
+
       <section className="toolsSection" id="tools">
         <div className="sectionTitle">
           <h2>Our Tools</h2>
-          <p>Choose a tool below and get your work done in seconds.</p>
+          <p>
+            Choose a tool below and get your work done in seconds.
+          </p>
         </div>
 
         <div className="toolGrid">
-          {tools.map((tool) => (
+          {tools.map((tool, index) => (
             <div className="toolCard" key={tool.name}>
               <div className="toolIcon">{tool.icon}</div>
+
               <h3>{tool.name}</h3>
+
               <p>{tool.description}</p>
-              <button>Use Tool →</button>
+
+              <a
+                href={index === 0 ? "#jpg-pdf" : "#tools"}
+                className="toolButton"
+              >
+                {index === 0 ? "Use Tool →" : "Coming Soon"}
+              </a>
             </div>
           ))}
         </div>
@@ -122,14 +265,17 @@ export default function Home() {
           <strong>100%</strong>
           <span>Free to Use</span>
         </div>
+
         <div>
           <strong>⚡ Fast</strong>
           <span>Processing</span>
         </div>
+
         <div>
           <strong>🛡️ Secure</strong>
           <span>Your files stay on your device</span>
         </div>
+
         <div>
           <strong>📱 All Devices</strong>
           <span>Mobile & Desktop</span>
@@ -174,6 +320,7 @@ export default function Home() {
           <h2>Ready to Make Your Work Easier?</h2>
           <p>Try our free tools and save your time.</p>
         </div>
+
         <a href="#tools">Explore Tools →</a>
       </section>
 
@@ -181,10 +328,17 @@ export default function Home() {
         <div className="footerBrand">
           <div className="logo">
             <div className="logoIcon">K</div>
-            <span>Kaam<span>Kit</span></span>
+
+            <span>
+              Kaam<span>Kit</span>
+            </span>
           </div>
+
           <p>Simple Tools. Better Work.</p>
-          <p>Free online tools for students, professionals and everyone.</p>
+
+          <p>
+            Free online tools for students, professionals and everyone.
+          </p>
         </div>
 
         <div>
@@ -197,7 +351,7 @@ export default function Home() {
 
         <div>
           <h3>Popular Tools</h3>
-          <a href="#tools">JPG to PDF</a>
+          <a href="#jpg-pdf">JPG to PDF</a>
           <a href="#tools">Image Compressor</a>
           <a href="#tools">Image Resizer</a>
           <a href="#tools">GST Calculator</a>
@@ -206,7 +360,7 @@ export default function Home() {
       </footer>
 
       <div className="copyright">
-        © 2026 KaamKit. All rights reserved.
+        <span>© 2026 KaamKit. All rights reserved.</span>
         <span>Made with ❤️ in India 🇮🇳</span>
       </div>
     </main>
