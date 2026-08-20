@@ -6,131 +6,93 @@ import { jsPDF } from "jspdf";
 
 export default function ExcelToPDF() {
   const [file, setFile] = useState(null);
-  const [workbook, setWorkbook] = useState(null);
-  const [sheetName, setSheetName] = useState("");
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
-  const handleFileChange = async (event) => {
-    const selectedFile = event.target.files?.[0];
-
+  const handleFile = async (e) => {
+    const selectedFile = e.target.files?.[0];
     if (!selectedFile) return;
 
     setMessage("");
     setFile(null);
-    setWorkbook(null);
-    setSheetName("");
     setRows([]);
-
-    const name = selectedFile.name.toLowerCase();
-
-    if (
-      !name.endsWith(".xlsx") &&
-      !name.endsWith(".xls") &&
-      !name.endsWith(".csv")
-    ) {
-      setMessage("Please select an Excel (.xlsx, .xls) or CSV file.");
-      return;
-    }
 
     try {
       const buffer = await selectedFile.arrayBuffer();
 
-      const wb = XLSX.read(buffer, {
+      const workbook = XLSX.read(buffer, {
         type: "array",
         cellDates: true,
       });
 
-      if (!wb.SheetNames.length) {
-        setMessage("No worksheet found in this file.");
+      const firstSheet = workbook.SheetNames[0];
+
+      if (!firstSheet) {
+        setMessage("Excel file me koi sheet nahi mili.");
         return;
       }
 
-      const firstSheet = wb.SheetNames[0];
-      const worksheet = wb.Sheets[firstSheet];
+      const worksheet = workbook.Sheets[firstSheet];
 
       const data = XLSX.utils.sheet_to_json(worksheet, {
         header: 1,
         defval: "",
         raw: false,
       });
+
+      const cleanData = data.filter((row) =>
+        row.some((cell) => String(cell).trim() !== "")
+      );
+
+      if (!cleanData.length) {
+        setMessage("Selected Excel sheet empty hai.");
+        return;
+      }
 
       setFile(selectedFile);
-      setWorkbook(wb);
-      setSheetName(firstSheet);
-      setRows(data);
-
-      setMessage("File loaded successfully.");
+      setRows(cleanData);
+      setMessage("Excel file successfully loaded.");
     } catch (error) {
       console.error(error);
-      setMessage("Unable to read this Excel file.");
+      setMessage("Excel file read nahi ho pa rahi.");
     }
-  };
-
-  const changeSheet = (event) => {
-    const selectedSheet = event.target.value;
-
-    if (!workbook) return;
-
-    try {
-      const worksheet = workbook.Sheets[selectedSheet];
-
-      const data = XLSX.utils.sheet_to_json(worksheet, {
-        header: 1,
-        defval: "",
-        raw: false,
-      });
-
-      setSheetName(selectedSheet);
-      setRows(data);
-      setMessage(`Sheet "${selectedSheet}" selected.`);
-    } catch (error) {
-      console.error(error);
-      setMessage("Unable to read this sheet.");
-    }
-  };
-
-  const formatCell = (value) => {
-    if (value === null || value === undefined) return "";
-
-    return String(value)
-      .replace(/\r\n/g, "\n")
-      .replace(/\r/g, "\n")
-      .trim();
   };
 
   const convertToPDF = () => {
     if (!rows.length) {
-      setMessage("Please select an Excel file first.");
+      setMessage("Pehle Excel file select karo.");
       return;
     }
 
     setLoading(true);
-    setMessage("");
 
     try {
-      const cleanRows = rows
-        .map((row) =>
-          Array.isArray(row) ? row.map((cell) => formatCell(cell)) : []
-        )
-        .filter((row) => row.some((cell) => cell !== ""));
+      const pdf = new jsPDF({
+        orientation: "landscape",
+        unit: "mm",
+        format: "a4",
+      });
 
-      if (!cleanRows.length) {
-        setMessage("The selected sheet is empty.");
-        setLoading(false);
-        return;
-      }
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+
+      const margin = 10;
+      const usableWidth = pageWidth - margin * 2;
 
       const columnCount = Math.max(
-        ...cleanRows.map((row) => row.length)
+        ...rows.map((row) => row.length)
       );
 
-      const normalizedRows = cleanRows.map((row) => {
+      const normalizedRows = rows.map((row) => {
         const newRow = [];
 
         for (let i = 0; i < columnCount; i++) {
-          newRow.push(row[i] || "");
+          newRow.push(
+            row[i] === undefined || row[i] === null
+              ? ""
+              : String(row[i])
+          );
         }
 
         return newRow;
@@ -139,191 +101,167 @@ export default function ExcelToPDF() {
       const header = normalizedRows[0];
       const body = normalizedRows.slice(1);
 
-      const pdf = new jsPDF({
-        orientation: "landscape",
-        unit: "mm",
-        format: "a4",
-        compress: true,
-      });
-
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-
-      const margin = 10;
-      const usableWidth = pageWidth - margin * 2;
-      const bottomMargin = 12;
-
-      let y = margin;
-
-      // Title
-      pdf.setFont("helvetica", "bold");
-      pdf.setFontSize(15);
-      pdf.setTextColor(20, 33, 61);
-      pdf.text("KaamKit - Excel to PDF", margin, y);
-
-      y += 7;
-
-      // File information
-      pdf.setFont("helvetica", "normal");
-      pdf.setFontSize(8);
-      pdf.setTextColor(100, 116, 139);
-
-      pdf.text(
-        `File: ${file?.name || "Excel File"} | Sheet: ${sheetName}`,
-        margin,
-        y
-      );
-
-      y += 7;
-
       // Calculate column widths
-      const widths = [];
+      const rawWidths = [];
 
-      for (let column = 0; column < columnCount; column++) {
-        let longest = String(header[column] || "").length;
+      for (let col = 0; col < columnCount; col++) {
+        let maxLength = String(header[col]).length;
 
         for (const row of body) {
-          const length = String(row[column] || "").length;
-
-          if (length > longest) {
-            longest = length;
-          }
+          maxLength = Math.max(
+            maxLength,
+            String(row[col] || "").length
+          );
         }
 
-        widths.push(Math.max(18, Math.min(longest * 2, 55)));
+        rawWidths.push(
+          Math.max(20, Math.min(maxLength * 2, 55))
+        );
       }
 
-      const totalWidth = widths.reduce(
-        (sum, width) => sum + width,
+      const rawTotal = rawWidths.reduce(
+        (a, b) => a + b,
         0
       );
 
-      const columnWidths = widths.map(
-        (width) => (width / totalWidth) * usableWidth
+      const widths = rawWidths.map(
+        (width) => (width / rawTotal) * usableWidth
       );
 
-      const fontSize = 7;
-      const lineHeight = 3.8;
-      const padding = 1.8;
+      let y = 25;
 
       const drawHeader = () => {
         let x = margin;
 
         pdf.setFont("helvetica", "bold");
-        pdf.setFontSize(fontSize);
+        pdf.setFontSize(7);
         pdf.setTextColor(255, 255, 255);
 
-        const headerLines = header.map((cell, index) =>
+        const lines = header.map((cell, i) =>
           pdf.splitTextToSize(
             String(cell || ""),
-            Math.max(columnWidths[index] - padding * 2, 5)
+            widths[i] - 4
           )
         );
 
-        const headerHeight =
-          Math.max(
-            ...headerLines.map((lines) => lines.length),
-            1
-          ) *
-            lineHeight +
-          padding * 2;
+        const height =
+          Math.max(...lines.map((x) => x.length), 1) *
+            4 +
+          5;
 
         for (let i = 0; i < columnCount; i++) {
           pdf.setFillColor(22, 119, 255);
-          pdf.setDrawColor(180, 195, 215);
+          pdf.setDrawColor(190, 200, 215);
 
           pdf.rect(
             x,
             y,
-            columnWidths[i],
-            headerHeight,
+            widths[i],
+            height,
             "FD"
           );
 
-          pdf.setTextColor(255, 255, 255);
-
           pdf.text(
-            headerLines[i],
-            x + padding,
-            y + padding + lineHeight - 1
+            lines[i],
+            x + 2,
+            y + 4
           );
 
-          x += columnWidths[i];
+          x += widths[i];
         }
 
-        y += headerHeight;
+        y += height;
       };
 
-      const drawBodyRow = (row, rowNumber) => {
-        const cellLines = row.map((cell, index) =>
+      const drawRow = (row, index) => {
+        const lines = row.map((cell, i) =>
           pdf.splitTextToSize(
             String(cell || ""),
-            Math.max(columnWidths[index] - padding * 2, 5)
+            widths[i] - 4
           )
         );
 
-        const rowHeight =
-          Math.max(
-            ...cellLines.map((lines) => lines.length),
-            1
-          ) *
-            lineHeight +
-          padding * 2;
+        const height =
+          Math.max(...lines.map((x) => x.length), 1) *
+            4 +
+          5;
 
-        if (y + rowHeight > pageHeight - bottomMargin) {
+        if (y + height > pageHeight - 12) {
           pdf.addPage();
-          y = margin;
+          y = 12;
           drawHeader();
         }
 
         let x = margin;
 
         for (let i = 0; i < columnCount; i++) {
-          if (rowNumber % 2 === 0) {
+          if (index % 2 === 0) {
             pdf.setFillColor(247, 250, 255);
             pdf.rect(
               x,
               y,
-              columnWidths[i],
-              rowHeight,
+              widths[i],
+              height,
               "F"
             );
           }
 
-          pdf.setDrawColor(210, 220, 232);
+          pdf.setDrawColor(210, 220, 230);
+
           pdf.rect(
             x,
             y,
-            columnWidths[i],
-            rowHeight
+            widths[i],
+            height
           );
 
           pdf.setFont("helvetica", "normal");
-          pdf.setFontSize(fontSize);
+          pdf.setFontSize(7);
           pdf.setTextColor(30, 41, 59);
 
           pdf.text(
-            cellLines[i],
-            x + padding,
-            y + padding + lineHeight - 1
+            lines[i],
+            x + 2,
+            y + 4
           );
 
-          x += columnWidths[i];
+          x += widths[i];
         }
 
-        y += rowHeight;
+        y += height;
       };
+
+      // Title
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(15);
+      pdf.setTextColor(20, 33, 61);
+
+      pdf.text(
+        "KaamKit - Excel to PDF",
+        margin,
+        10
+      );
+
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(8);
+      pdf.setTextColor(100, 116, 139);
+
+      pdf.text(
+        file?.name || "Excel File",
+        margin,
+        17
+      );
 
       drawHeader();
 
       body.forEach((row, index) => {
-        drawBodyRow(row, index + 1);
+        drawRow(row, index);
       });
 
-      // Footer on every page
-      const totalPages = pdf.getNumberOfPages();
+      // Footer
+      const pages = pdf.getNumberOfPages();
 
-      for (let page = 1; page <= totalPages; page++) {
+      for (let page = 1; page <= pages; page++) {
         pdf.setPage(page);
 
         pdf.setFont("helvetica", "normal");
@@ -331,9 +269,9 @@ export default function ExcelToPDF() {
         pdf.setTextColor(120, 130, 145);
 
         pdf.text(
-          `KaamKit • Excel to PDF • Page ${page} of ${totalPages}`,
+          `KaamKit | Excel to PDF | Page ${page} of ${pages}`,
           margin,
-          pageHeight - 6
+          pageHeight - 5
         );
       }
 
@@ -343,12 +281,10 @@ export default function ExcelToPDF() {
 
       pdf.save(`${outputName}.pdf`);
 
-      setMessage("PDF created successfully!");
+      setMessage("PDF successfully download ho gaya! ✅");
     } catch (error) {
       console.error(error);
-      setMessage(
-        "PDF creation failed. Please try another Excel file."
-      );
+      setMessage("PDF create karte time error aa gaya.");
     } finally {
       setLoading(false);
     }
@@ -356,8 +292,6 @@ export default function ExcelToPDF() {
 
   const reset = () => {
     setFile(null);
-    setWorkbook(null);
-    setSheetName("");
     setRows([]);
     setMessage("");
   };
@@ -369,22 +303,23 @@ export default function ExcelToPDF() {
         background: "#f4f8ff",
         fontFamily: "Arial, sans-serif",
         color: "#14213d",
+        paddingBottom: "50px",
       }}
     >
       <header
         style={{
-          background: "#ffffff",
+          background: "#fff",
           borderBottom: "1px solid #e5edf7",
           padding: "15px 20px",
         }}
       >
         <div
           style={{
-            maxWidth: "950px",
+            maxWidth: "900px",
             margin: "auto",
             display: "flex",
-            alignItems: "center",
             justifyContent: "space-between",
+            alignItems: "center",
           }}
         >
           <a
@@ -403,7 +338,7 @@ export default function ExcelToPDF() {
                 height: "42px",
                 borderRadius: "12px",
                 background: "#1677ff",
-                color: "#ffffff",
+                color: "#fff",
                 alignItems: "center",
                 justifyContent: "center",
                 marginRight: "10px",
@@ -411,14 +346,15 @@ export default function ExcelToPDF() {
             >
               K
             </span>
+
             Kaam<span style={{ color: "#1677ff" }}>Kit</span>
           </a>
 
           <a
             href="/"
             style={{
-              textDecoration: "none",
               color: "#1677ff",
+              textDecoration: "none",
               fontWeight: "700",
             }}
           >
@@ -429,9 +365,9 @@ export default function ExcelToPDF() {
 
       <section
         style={{
-          maxWidth: "950px",
+          maxWidth: "900px",
           margin: "auto",
-          padding: "45px 20px 70px",
+          padding: "45px 20px",
         }}
       >
         <div
@@ -442,15 +378,8 @@ export default function ExcelToPDF() {
         >
           <div
             style={{
-              width: "78px",
-              height: "78px",
-              margin: "0 auto 16px",
-              borderRadius: "20px",
-              background: "#e7f1ff",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "42px",
+              fontSize: "50px",
+              marginBottom: "10px",
             }}
           >
             📊
@@ -467,18 +396,18 @@ export default function ExcelToPDF() {
 
           <p
             style={{
-              margin: 0,
               color: "#718096",
               fontSize: "17px",
+              margin: 0,
             }}
           >
-            Convert Excel files into clean PDF documents.
+            Convert Excel files to PDF instantly.
           </p>
         </div>
 
         <div
           style={{
-            background: "#ffffff",
+            background: "#fff",
             borderRadius: "24px",
             padding: "28px",
             border: "1px solid #e4ecf7",
@@ -499,144 +428,93 @@ export default function ExcelToPDF() {
           <input
             type="file"
             accept=".xlsx,.xls,.csv"
-            onChange={handleFileChange}
+            onChange={handleFile}
             style={{
               width: "100%",
               boxSizing: "border-box",
               padding: "14px",
               borderRadius: "12px",
               border: "1px solid #cbd5e1",
-              background: "#ffffff",
-              fontSize: "15px",
               marginBottom: "20px",
+              background: "#fff",
             }}
           />
 
           {file && (
             <div
               style={{
-                background: "#f5f9ff",
-                border: "1px solid #dce9f8",
-                borderRadius: "14px",
-                padding: "15px",
+                background: "#eef6ff",
+                padding: "14px",
+                borderRadius: "12px",
                 marginBottom: "20px",
+                wordBreak: "break-word",
               }}
             >
-              <strong>Selected File</strong>
-
-              <div
-                style={{
-                  marginTop: "5px",
-                  color: "#64748b",
-                  wordBreak: "break-word",
-                }}
-              >
-                {file.name}
-              </div>
-            </div>
-          )}
-
-          {workbook && (
-            <div style={{ marginBottom: "20px" }}>
-              <label
-                style={{
-                  display: "block",
-                  fontWeight: "700",
-                  marginBottom: "8px",
-                }}
-              >
-                Select Sheet
-              </label>
-
-              <select
-                value={sheetName}
-                onChange={changeSheet}
-                style={{
-                  width: "100%",
-                  padding: "15px",
-                  borderRadius: "12px",
-                  border: "1px solid #cbd5e1",
-                  fontSize: "16px",
-                  background: "#ffffff",
-                }}
-              >
-                {workbook.SheetNames.map((sheet) => (
-                  <option key={sheet} value={sheet}>
-                    {sheet}
-                  </option>
-                ))}
-              </select>
+              <strong>Selected:</strong> {file.name}
             </div>
           )}
 
           {rows.length > 0 && (
             <div
               style={{
-                background: "#f8fafc",
-                border: "1px solid #e2e8f0",
-                borderRadius: "14px",
-                padding: "15px",
                 marginBottom: "20px",
+                overflowX: "auto",
+                border: "1px solid #e2e8f0",
+                borderRadius: "12px",
               }}
             >
-              <strong>Excel Preview</strong>
-
-              <div
+              <table
                 style={{
-                  overflowX: "auto",
-                  marginTop: "12px",
-                  maxHeight: "260px",
+                  borderCollapse: "collapse",
+                  minWidth: "600px",
+                  width: "100%",
+                  fontSize: "13px",
                 }}
               >
-                <table
-                  style={{
-                    borderCollapse: "collapse",
-                    minWidth: "600px",
-                    width: "100%",
-                    fontSize: "13px",
-                  }}
-                >
-                  <tbody>
-                    {rows.slice(0, 8).map((row, rowIndex) => (
+                <tbody>
+                  {rows.slice(0, 6).map(
+                    (row, rowIndex) => (
                       <tr key={rowIndex}>
-                        {row.map((cell, cellIndex) => (
-                          <td
-                            key={cellIndex}
-                            style={{
-                              padding: "9px",
-                              border:
-                                "1px solid #e2e8f0",
-                              background:
-                                rowIndex === 0
-                                  ? "#eef5ff"
-                                  : "#ffffff",
-                              fontWeight:
-                                rowIndex === 0
-                                  ? "700"
-                                  : "400",
-                              whiteSpace: "nowrap",
-                            }}
-                          >
-                            {formatCell(cell)}
-                          </td>
-                        ))}
+                        {row.map(
+                          (cell, cellIndex) => (
+                            <td
+                              key={cellIndex}
+                              style={{
+                                padding: "9px",
+                                border:
+                                  "1px solid #e2e8f0",
+                                fontWeight:
+                                  rowIndex === 0
+                                    ? "700"
+                                    : "400",
+                                background:
+                                  rowIndex === 0
+                                    ? "#eef5ff"
+                                    : "#fff",
+                                whiteSpace:
+                                  "nowrap",
+                              }}
+                            >
+                              {String(cell || "")}
+                            </td>
+                          )
+                        )}
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    )
+                  )}
+                </tbody>
+              </table>
             </div>
           )}
 
           {message && (
             <div
               style={{
-                padding: "14px",
-                borderRadius: "12px",
                 background: "#eef6ff",
                 color: "#1459a6",
+                padding: "14px",
+                borderRadius: "12px",
                 marginBottom: "20px",
-                fontSize: "14px",
               }}
             >
               {message}
@@ -656,7 +534,7 @@ export default function ExcelToPDF() {
                 !rows.length || loading
                   ? "#94a3b8"
                   : "#1677ff",
-              color: "#ffffff",
+              color: "#fff",
               fontSize: "17px",
               fontWeight: "800",
               cursor:
@@ -679,11 +557,9 @@ export default function ExcelToPDF() {
               padding: "14px",
               borderRadius: "12px",
               border: "1px solid #cbd5e1",
-              background: "#ffffff",
-              color: "#334155",
+              background: "#fff",
               fontSize: "15px",
               fontWeight: "700",
-              cursor: "pointer",
             }}
           >
             Reset
