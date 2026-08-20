@@ -15,10 +15,10 @@
     "react": "latest",
     "react-dom": "latest",
     "jspdf": "latest",
+    "html2canvas": "latest",
     "pdfjs-dist": "6.2.108",
     "docx": "9.7.1",
     "xlsx": "latest",
-    "mammoth": "latest",
-    "qrcode": "latest"
+    "mammoth": "9.7.1"
   }
 }
