@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { jsPDF } from "jspdf";
 
@@ -162,17 +163,15 @@ export default function Home() {
   return (
     <main className="site">
 
-      {/* NAVBAR */}
-
       <nav className="navbar">
 
-        <a href="#home" className="logo">
+        <Link href="/" className="logo">
           <div className="logoIcon">K</div>
 
           <span>
             Kaam<span>Kit</span>
           </span>
-        </a>
+        </Link>
 
         <button
           className="menuBtn"
@@ -183,15 +182,13 @@ export default function Home() {
         </button>
 
         <div className={`navLinks ${menuOpen ? "open" : ""}`}>
-          <a href="#home">Home</a>
-          <a href="#tools">Tools</a>
-          <a href="#about">About</a>
-          <a href="#contact">Contact</a>
+          <Link href="/">Home</Link>
+          <Link href="/#tools">Tools</Link>
+          <Link href="/#about">About</Link>
+          <Link href="/#contact">Contact</Link>
         </div>
 
       </nav>
-
-      {/* HERO */}
 
       <section className="hero" id="home">
 
@@ -248,32 +245,23 @@ export default function Home() {
           </div>
 
           <div className="laptop">
-
             <div className="screen">
               <div className="bigK">K</div>
               <strong>KaamKit</strong>
             </div>
 
             <div className="keyboard"></div>
-
           </div>
 
         </div>
 
       </section>
 
-      {/* JPG TO PDF */}
-
-      <section
-        className="converterSection"
-        id="jpg-pdf"
-      >
+      <section className="converterSection" id="jpg-pdf">
 
         <div className="sectionTitle">
 
-          <h2>
-            JPG to PDF Converter
-          </h2>
+          <h2>JPG to PDF Converter</h2>
 
           <p>
             Convert your JPG, JPEG or PNG image
@@ -288,17 +276,11 @@ export default function Home() {
 
             <label className="uploadBox">
 
-              <div className="uploadIcon">
-                📤
-              </div>
+              <div className="uploadIcon">📤</div>
 
-              <h3>
-                Upload an Image
-              </h3>
+              <h3>Upload an Image</h3>
 
-              <p>
-                JPG, JPEG or PNG
-              </p>
+              <p>JPG, JPEG or PNG</p>
 
               <span className="uploadButton">
                 Choose Image
@@ -362,18 +344,11 @@ export default function Home() {
 
       </section>
 
-      {/* TOOLS */}
-
-      <section
-        className="toolsSection"
-        id="tools"
-      >
+      <section className="toolsSection" id="tools">
 
         <div className="sectionTitle">
 
-          <h2>
-            Our Tools
-          </h2>
+          <h2>Our Tools</h2>
 
           <p>
             Choose a tool and get your work done
@@ -386,31 +361,24 @@ export default function Home() {
 
           {tools.map((tool) => (
 
-            <div
-              className="toolCard"
-              key={tool.name}
-            >
+            <div className="toolCard" key={tool.name}>
 
               <div className="toolIcon">
                 {tool.icon}
               </div>
 
-              <h3>
-                {tool.name}
-              </h3>
+              <h3>{tool.name}</h3>
 
-              <p>
-                {tool.description}
-              </p>
+              <p>{tool.description}</p>
 
               {tool.active ? (
 
-                <a
+                <Link
                   href={tool.href}
                   className="toolButton"
                 >
                   Use Tool →
-                </a>
+                </Link>
 
               ) : (
 
@@ -427,8 +395,6 @@ export default function Home() {
         </div>
 
       </section>
-
-      {/* FEATURES */}
 
       <section className="features">
 
@@ -454,18 +420,11 @@ export default function Home() {
 
       </section>
 
-      {/* ABOUT */}
-
-      <section
-        className="why"
-        id="about"
-      >
+      <section className="why" id="about">
 
         <div className="sectionTitle">
 
-          <h2>
-            Why Choose KaamKit?
-          </h2>
+          <h2>Why Choose KaamKit?</h2>
 
           <p>
             Simple tools for everyday work.
@@ -503,49 +462,37 @@ export default function Home() {
 
       </section>
 
-      {/* CTA */}
-
       <section className="cta">
 
         <div>
-
-          <h2>
-            Ready to Make Your Work Easier?
-          </h2>
+          <h2>Ready to Make Your Work Easier?</h2>
 
           <p>
             Try KaamKit free tools today.
           </p>
-
         </div>
 
-        <a href="#tools">
+        <Link href="/#tools">
           Explore Tools →
-        </a>
+        </Link>
 
       </section>
-
-      {/* FOOTER */}
 
       <footer id="contact">
 
         <div className="footerBrand">
 
-          <div className="logo">
+          <Link href="/" className="logo">
 
-            <div className="logoIcon">
-              K
-            </div>
+            <div className="logoIcon">K</div>
 
             <span>
               Kaam<span>Kit</span>
             </span>
 
-          </div>
+          </Link>
 
-          <p>
-            Simple Tools. Better Work.
-          </p>
+          <p>Simple Tools. Better Work.</p>
 
           <p>
             Free online tools for students,
@@ -558,10 +505,10 @@ export default function Home() {
 
           <h3>Quick Links</h3>
 
-          <a href="#home">Home</a>
-          <a href="#tools">Tools</a>
-          <a href="#about">About</a>
-          <a href="#contact">Contact</a>
+          <Link href="/">Home</Link>
+          <Link href="/#tools">Tools</Link>
+          <Link href="/#about">About</Link>
+          <Link href="/#contact">Contact</Link>
 
         </div>
 
@@ -569,12 +516,12 @@ export default function Home() {
 
           <h3>Popular Tools</h3>
 
-          <a href="#jpg-pdf">JPG to PDF</a>
-          <a href="/compressor">Image Compressor</a>
-          <a href="/resizer">Image Resizer</a>
-          <a href="#tools">PDF Tools</a>
-          <a href="#tools">GST Calculator</a>
-          <a href="#tools">QR Generator</a>
+          <Link href="/#jpg-pdf">JPG to PDF</Link>
+          <Link href="/compressor">Image Compressor</Link>
+          <Link href="/resizer">Image Resizer</Link>
+          <Link href="/#tools">PDF Tools</Link>
+          <Link href="/#tools">GST Calculator</Link>
+          <Link href="/#tools">QR Generator</Link>
 
         </div>
 
