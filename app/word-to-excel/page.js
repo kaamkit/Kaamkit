@@ -1,114 +1,106 @@
 "use client";
 
 import { useState } from "react";
+import * as mammoth from "mammoth/mammoth.browser";
+import * as XLSX from "xlsx";
 
 export default function WordToExcel() {
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [success, setSuccess] = useState(false);
 
-  const handleConvert = async () => {
+  const handleFileChange = (event) => {
+    const selectedFile = event.target.files?.[0];
+
+    setFile(null);
+    setMessage("");
+    setSuccess(false);
+
+    if (!selectedFile) return;
+
+    const isDocx =
+      selectedFile.name.toLowerCase().endsWith(".docx");
+
+    if (!isDocx) {
+      setMessage("Please select a Word .docx file.");
+      return;
+    }
+
+    if (selectedFile.size > 25 * 1024 * 1024) {
+      setMessage("Word file size must be less than 25 MB.");
+      return;
+    }
+
+    setFile(selectedFile);
+  };
+
+  const convertToExcel = async () => {
     if (!file) {
       setMessage("Please select a Word file first.");
+      setSuccess(false);
       return;
     }
 
-    if (!file.name.toLowerCase().endsWith(".docx")) {
-      setMessage("Please select a .docx Word file.");
-      return;
-    }
+    setLoading(true);
+    setMessage("");
+    setSuccess(false);
 
     try {
-      setLoading(true);
-      setMessage("Loading Word converter...");
-
-      // Load libraries only in the browser
-      const mammothModule = await import("mammoth");
-      const XLSX = await import("xlsx");
-
-      const mammoth = mammothModule.default || mammothModule;
-
-      setMessage("Reading Word document...");
-
       const arrayBuffer = await file.arrayBuffer();
 
-      // Convert DOCX to HTML
       const result = await mammoth.convertToHtml({
         arrayBuffer,
       });
 
       const html = result.value;
 
-      if (!html || !html.trim()) {
-        throw new Error(
-          "No readable content was found in this Word document."
-        );
-      }
-
-      setMessage("Preparing Excel spreadsheet...");
-
-      // Parse Mammoth-generated HTML
       const parser = new DOMParser();
-      const documentHtml = parser.parseFromString(
+      const doc = parser.parseFromString(
         html,
         "text/html"
       );
 
       const workbook = XLSX.utils.book_new();
 
-      const tables = documentHtml.querySelectorAll("table");
+      const tables = Array.from(
+        doc.querySelectorAll("table")
+      );
 
-      // If the Word document contains tables
+      // If the Word document contains tables,
+      // each table becomes a separate Excel sheet.
       if (tables.length > 0) {
         tables.forEach((table, tableIndex) => {
-          const rows = [];
-          const tableRows = table.querySelectorAll("tr");
+          const rows = Array.from(
+            table.querySelectorAll("tr")
+          );
 
-          tableRows.forEach((tr) => {
-            const cells = tr.querySelectorAll("th, td");
-
-            const row = [];
-
-            cells.forEach((cell) => {
-              row.push(
-                cell.textContent
-                  .replace(/\s+/g, " ")
-                  .trim()
-              );
-            });
-
-            if (row.length > 0) {
-              rows.push(row);
-            }
-          });
-
-          if (rows.length > 0) {
-            const worksheet =
-              XLSX.utils.aoa_to_sheet(rows);
-
-            // Auto column width
-            const maxColumns = Math.max(
-              ...rows.map((row) => row.length)
+          const data = rows.map((row) => {
+            const cells = Array.from(
+              row.querySelectorAll("th, td")
             );
 
+            return cells.map((cell) =>
+              cell.textContent
+                .replace(/\s+/g, " ")
+                .trim()
+            );
+          });
+
+          if (data.length > 0) {
+            const worksheet =
+              XLSX.utils.aoa_to_sheet(data);
+
             worksheet["!cols"] = Array.from(
-              { length: maxColumns },
-              (_, columnIndex) => {
-                let maxLength = 10;
-
-                rows.forEach((row) => {
-                  const value = row[columnIndex] || "";
-
-                  maxLength = Math.max(
-                    maxLength,
-                    String(value).length
-                  );
-                });
-
-                return {
-                  wch: Math.min(maxLength + 2, 40),
-                };
-              }
+              {
+                length: Math.max(
+                  ...data.map((row) => row.length),
+                  1
+                ),
+              },
+              () => ({
+                wch: 22,
+              })
             );
 
             XLSX.utils.book_append_sheet(
@@ -120,35 +112,34 @@ export default function WordToExcel() {
         });
       }
 
-      // Get normal paragraphs/headings outside tables
-      const bodyElements =
-        documentHtml.body.querySelectorAll(
-          "h1, h2, h3, h4, h5, h6, p, li"
-        );
+      // If there are no tables, export normal Word
+      // paragraphs into one Excel sheet.
+      if (tables.length === 0) {
+        const paragraphs = Array.from(
+          doc.querySelectorAll("p")
+        )
+          .map((paragraph) =>
+            paragraph.textContent
+              .replace(/\s+/g, " ")
+              .trim()
+          )
+          .filter(Boolean);
 
-      const textRows = [];
-
-      bodyElements.forEach((element) => {
-        // Ignore text that is already inside a table
-        if (element.closest("table")) {
-          return;
+        if (paragraphs.length === 0) {
+          throw new Error(
+            "No readable content was found."
+          );
         }
 
-        const text = element.textContent
-          .replace(/\s+/g, " ")
-          .trim();
+        const data = [
+          ["Word Document Content"],
+          ...paragraphs.map((text) => [text]),
+        ];
 
-        if (text) {
-          textRows.push([text]);
-        }
-      });
+        const worksheet =
+          XLSX.utils.aoa_to_sheet(data);
 
-      // Add text sheet if there is normal text
-      if (textRows.length > 0) {
-        const textSheet =
-          XLSX.utils.aoa_to_sheet(textRows);
-
-        textSheet["!cols"] = [
+        worksheet["!cols"] = [
           {
             wch: 80,
           },
@@ -156,70 +147,67 @@ export default function WordToExcel() {
 
         XLSX.utils.book_append_sheet(
           workbook,
-          textSheet,
-          "Document Text"
+          worksheet,
+          "Content"
         );
       }
 
-      if (workbook.SheetNames.length === 0) {
-        throw new Error(
-          "No readable tables or text were found."
-        );
-      }
-
-      setMessage("Creating Excel file...");
-
-      // Generate XLSX file
-      const excelData = XLSX.write(workbook, {
+      const excelBuffer = XLSX.write(workbook, {
         bookType: "xlsx",
         type: "array",
       });
 
-      const blob = new Blob([excelData], {
+      const blob = new Blob([excelBuffer], {
         type:
           "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       });
 
-      // Download file
-      const downloadUrl =
-        URL.createObjectURL(blob);
+      const url = URL.createObjectURL(blob);
 
       const link = document.createElement("a");
 
-      link.href = downloadUrl;
+      link.href = url;
 
-      link.download =
-        file.name.replace(/\.docx$/i, "") +
-        ".xlsx";
+      const originalName = file.name.replace(
+        /\.docx$/i,
+        ""
+      );
+
+      link.download = `${originalName}.xlsx`;
 
       document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
+      link.remove();
 
-      URL.revokeObjectURL(downloadUrl);
+      URL.revokeObjectURL(url);
 
-      if (result.messages?.length > 0) {
-        console.log(
-          "Mammoth conversion messages:",
-          result.messages
-        );
-      }
-
+      setSuccess(true);
       setMessage(
-        "✅ Word successfully converted to Excel!"
+        "Word file converted successfully. Your Excel file has been downloaded."
       );
     } catch (error) {
-      console.error(
-        "Word to Excel Error:",
-        error
-      );
+      console.error("Word to Excel error:", error);
 
+      setSuccess(false);
       setMessage(
-        "Conversion failed: " +
-          (error?.message || "Unknown error")
+        "Conversion failed. Please try another .docx file."
       );
     } finally {
       setLoading(false);
+    }
+  };
+
+  const resetTool = () => {
+    setFile(null);
+    setMessage("");
+    setSuccess(false);
+    setLoading(false);
+
+    const input =
+      document.getElementById("word-excel-input");
+
+    if (input) {
+      input.value = "";
     }
   };
 
@@ -227,117 +215,311 @@ export default function WordToExcel() {
     <main
       style={{
         minHeight: "100vh",
-        padding: "40px 20px",
-        background: "#f5f7fa",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "flex-start",
+        background: "#f4f8ff",
+        color: "#14213d",
+        fontFamily: "Arial, sans-serif",
       }}
     >
-      <div
+      <header
         style={{
-          width: "100%",
-          maxWidth: "600px",
-          background: "#ffffff",
-          padding: "35px",
-          marginTop: "30px",
-          borderRadius: "18px",
-          boxShadow:
-            "0 8px 30px rgba(0,0,0,0.08)",
-          textAlign: "center",
+          background: "#fff",
+          borderBottom: "1px solid #e5edf7",
+          padding: "16px 20px",
         }}
       >
-        <h1
+        <div
           style={{
-            fontSize: "36px",
-            marginBottom: "10px",
+            maxWidth: "900px",
+            margin: "auto",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
           }}
         >
-          Word to Excel
-        </h1>
+          <a
+            href="/"
+            style={{
+              textDecoration: "none",
+              color: "#14213d",
+              fontSize: "24px",
+              fontWeight: "800",
+            }}
+          >
+            <span
+              style={{
+                display: "inline-flex",
+                width: "42px",
+                height: "42px",
+                borderRadius: "12px",
+                background: "#1677ff",
+                color: "#fff",
+                alignItems: "center",
+                justifyContent: "center",
+                marginRight: "10px",
+              }}
+            >
+              K
+            </span>
+            Kaam<span style={{ color: "#1677ff" }}>Kit</span>
+          </a>
 
-        <p
+          <a
+            href="/"
+            style={{
+              textDecoration: "none",
+              color: "#1677ff",
+              fontWeight: "700",
+            }}
+          >
+            ← Home
+          </a>
+        </div>
+      </header>
+
+      <section
+        style={{
+          maxWidth: "850px",
+          margin: "auto",
+          padding: "45px 20px 70px",
+        }}
+      >
+        <div
           style={{
-            color: "#666",
-            fontSize: "18px",
+            textAlign: "center",
             marginBottom: "30px",
           }}
         >
-          Convert your Word documents into
-          Excel spreadsheets.
-        </p>
-
-        <input
-          type="file"
-          accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-          onChange={(e) => {
-            setFile(
-              e.target.files?.[0] || null
-            );
-            setMessage("");
-          }}
-          style={{
-            width: "100%",
-            padding: "15px",
-            border: "1px solid #ddd",
-            borderRadius: "10px",
-            marginBottom: "20px",
-            boxSizing: "border-box",
-          }}
-        />
-
-        {file && (
-          <p
+          <div
             style={{
-              marginBottom: "20px",
-              color: "#333",
-              wordBreak: "break-word",
+              width: "78px",
+              height: "78px",
+              margin: "0 auto 16px",
+              borderRadius: "20px",
+              background: "#e7f1ff",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "42px",
             }}
           >
-            Selected:{" "}
-            <strong>{file.name}</strong>
-          </p>
-        )}
+            📊
+          </div>
 
-        <button
-          onClick={handleConvert}
-          disabled={loading}
+          <h1
+            style={{
+              margin: "0 0 10px",
+              fontSize: "38px",
+            }}
+          >
+            Word to Excel Converter
+          </h1>
+
+          <p
+            style={{
+              margin: 0,
+              color: "#718096",
+              fontSize: "17px",
+            }}
+          >
+            Convert Word tables and document content
+            into an Excel file.
+          </p>
+        </div>
+
+        <div
           style={{
-            width: "100%",
-            padding: "16px",
-            border: "none",
-            borderRadius: "10px",
-            background: loading
-              ? "#999"
-              : "#111827",
-            color: "#ffffff",
-            fontSize: "18px",
-            fontWeight: "600",
-            cursor: loading
-              ? "not-allowed"
-              : "pointer",
+            background: "#fff",
+            borderRadius: "24px",
+            padding: "30px",
+            border: "1px solid #e4ecf7",
+            boxShadow:
+              "0 15px 45px rgba(30,80,140,.10)",
           }}
         >
-          {loading
-            ? "Converting..."
-            : "Convert to Excel"}
-        </button>
-
-        {message && (
-          <p
+          <label
+            htmlFor="word-excel-input"
             style={{
-              marginTop: "22px",
-              color: message.startsWith("✅")
-                ? "green"
-                : "#555",
-              fontSize: "16px",
-              lineHeight: "1.5",
+              display: "block",
+              border: "2px dashed #9fc5ff",
+              borderRadius: "18px",
+              padding: "40px 20px",
+              textAlign: "center",
+              background: "#f8fbff",
+              cursor: "pointer",
             }}
           >
-            {message}
-          </p>
-        )}
-      </div>
+            <div
+              style={{
+                fontSize: "48px",
+                marginBottom: "12px",
+              }}
+            >
+              📝
+            </div>
+
+            <h2
+              style={{
+                margin: "0 0 8px",
+                fontSize: "21px",
+              }}
+            >
+              Select Word File
+            </h2>
+
+            <p
+              style={{
+                margin: 0,
+                color: "#718096",
+              }}
+            >
+              DOCX files only • Maximum 25 MB
+            </p>
+
+            <input
+              id="word-excel-input"
+              type="file"
+              accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+              onChange={handleFileChange}
+              style={{ display: "none" }}
+            />
+          </label>
+
+          {file && (
+            <div
+              style={{
+                marginTop: "20px",
+                padding: "15px",
+                borderRadius: "14px",
+                background: "#f0f7ff",
+                border: "1px solid #d7e9ff",
+              }}
+            >
+              <strong
+                style={{
+                  display: "block",
+                  wordBreak: "break-word",
+                }}
+              >
+                📝 {file.name}
+              </strong>
+
+              <span
+                style={{
+                  display: "block",
+                  marginTop: "5px",
+                  color: "#718096",
+                  fontSize: "14px",
+                }}
+              >
+                {(file.size / 1024 / 1024).toFixed(2)} MB
+              </span>
+            </div>
+          )}
+
+          <button
+            type="button"
+            onClick={convertToExcel}
+            disabled={loading || !file}
+            style={{
+              width: "100%",
+              marginTop: "22px",
+              padding: "16px",
+              border: "none",
+              borderRadius: "12px",
+              background:
+                loading || !file
+                  ? "#9bbbe8"
+                  : "#1677ff",
+              color: "#fff",
+              fontSize: "17px",
+              fontWeight: "800",
+              cursor:
+                loading || !file
+                  ? "not-allowed"
+                  : "pointer",
+            }}
+          >
+            {loading
+              ? "Converting..."
+              : "Convert to Excel →"}
+          </button>
+
+          {message && (
+            <div
+              style={{
+                marginTop: "18px",
+                padding: "15px",
+                borderRadius: "12px",
+                background: success
+                  ? "#ecfdf3"
+                  : "#fff4f4",
+                border: success
+                  ? "1px solid #b7ebc6"
+                  : "1px solid #ffcaca",
+                color: success
+                  ? "#18794e"
+                  : "#b42318",
+                lineHeight: "1.5",
+                fontSize: "14px",
+              }}
+            >
+              {success ? "✅ " : "⚠️ "}
+              {message}
+            </div>
+          )}
+
+          <button
+            type="button"
+            onClick={resetTool}
+            style={{
+              width: "100%",
+              marginTop: "15px",
+              padding: "14px",
+              borderRadius: "12px",
+              border: "1px solid #cbd5e1",
+              background: "#fff",
+              color: "#14213d",
+              fontSize: "16px",
+              fontWeight: "700",
+              cursor: "pointer",
+            }}
+          >
+            Reset
+          </button>
+
+          <div
+            style={{
+              marginTop: "25px",
+              padding: "18px",
+              borderRadius: "15px",
+              background: "#f8fafc",
+              border: "1px solid #e2e8f0",
+              color: "#64748b",
+              fontSize: "14px",
+              lineHeight: "1.6",
+            }}
+          >
+            <strong style={{ color: "#334155" }}>
+              Note:
+            </strong>{" "}
+            Word tables are exported as separate Excel
+            sheets. If the document has no tables, its
+            readable paragraphs are placed into an Excel
+            sheet.
+          </div>
+        </div>
+      </section>
+
+      <footer
+        style={{
+          textAlign: "center",
+          padding: "25px 20px",
+          color: "#718096",
+          fontSize: "14px",
+        }}
+      >
+        © {new Date().getFullYear()} KaamKit. Free online tools.
+      </footer>
     </main>
   );
 }
