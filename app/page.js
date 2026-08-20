@@ -9,70 +9,70 @@ const tools = [
     icon: "📄",
     description: "Convert JPG, JPEG or PNG images to PDF easily.",
     href: "#jpg-pdf",
-    active: true,
+    available: true,
   },
   {
     name: "Image Compressor",
     icon: "🗜️",
-    description: "Reduce image size quickly and easily.",
+    description: "Reduce image size quickly without losing quality.",
     href: "/compressor",
-    active: true,
+    available: true,
   },
   {
     name: "Image Resizer",
     icon: "↗️",
     description: "Resize your images to any dimension.",
     href: "/resizer",
-    active: true,
+    available: true,
   },
   {
     name: "PDF to Word",
     icon: "📝",
     description: "Convert PDF documents into editable Word files.",
     href: "#tools",
-    active: false,
+    available: false,
   },
   {
     name: "PDF to Excel",
     icon: "📊",
     description: "Convert PDF tables into Excel files.",
     href: "#tools",
-    active: false,
+    available: false,
   },
   {
     name: "Word to Excel",
     icon: "📋",
     description: "Convert Word data into Excel format.",
     href: "#tools",
-    active: false,
+    available: false,
   },
   {
     name: "Word to PDF",
     icon: "📑",
     description: "Convert Word documents into PDF.",
     href: "#tools",
-    active: false,
+    available: false,
   },
   {
     name: "Excel to PDF",
     icon: "📈",
     description: "Convert Excel files into PDF.",
     href: "#tools",
-    active: false,
+    available: false,
   },
   {
     name: "GST Calculator",
     icon: "₹",
-    description: "Calculate GST, tax and final amount.",
-    href: "#tools",
-    active: false,
+    description: "Calculate GST, CGST, SGST and final amount.",
+    href: "/gst-calculator",
+    available: true,
   },
   {
     name: "QR Generator",
     icon: "▦",
     description: "Create QR codes for text and links.",
     href: "#tools",
-    active: false,
+    available: false,
   },
 ];
 
@@ -160,8 +160,8 @@ export default function Home() {
   };
 
   const openTool = (href) => {
-    if (!href || href.startsWith("#")) {
-      window.location.hash = href.replace("#", "");
+    if (href.startsWith("#")) {
+      window.location.hash = href.substring(1);
       return;
     }
 
@@ -172,7 +172,6 @@ export default function Home() {
     <main className="site">
 
       {/* NAVBAR */}
-
       <nav className="navbar">
 
         <a href="/" className="logo">
@@ -202,7 +201,6 @@ export default function Home() {
       </nav>
 
       {/* HERO */}
-
       <section className="hero" id="home">
 
         <div className="heroContent">
@@ -223,7 +221,6 @@ export default function Home() {
           </p>
 
           <div className="searchBox">
-
             <span>⌕</span>
 
             <input
@@ -234,7 +231,6 @@ export default function Home() {
             <button type="button">
               Search
             </button>
-
           </div>
 
           <div className="trust">
@@ -275,7 +271,6 @@ export default function Home() {
       </section>
 
       {/* JPG TO PDF */}
-
       <section
         className="converterSection"
         id="jpg-pdf"
@@ -370,7 +365,6 @@ export default function Home() {
       </section>
 
       {/* TOOLS */}
-
       <section
         className="toolsSection"
         id="tools"
@@ -404,7 +398,7 @@ export default function Home() {
 
               <p>{tool.description}</p>
 
-              {tool.active ? (
+              {tool.available ? (
 
                 <button
                   type="button"
@@ -431,7 +425,6 @@ export default function Home() {
       </section>
 
       {/* FEATURES */}
-
       <section className="features">
 
         <div>
@@ -457,7 +450,6 @@ export default function Home() {
       </section>
 
       {/* ABOUT */}
-
       <section
         className="why"
         id="about"
@@ -504,11 +496,9 @@ export default function Home() {
       </section>
 
       {/* CTA */}
-
       <section className="cta">
 
         <div>
-
           <h2>
             Ready to Make Your Work Easier?
           </h2>
@@ -516,17 +506,18 @@ export default function Home() {
           <p>
             Try KaamKit free tools today.
           </p>
-
         </div>
 
-        <a href="/#tools">
+        <button
+          type="button"
+          onClick={() => openTool("#tools")}
+        >
           Explore Tools →
-        </a>
+        </button>
 
       </section>
 
       {/* FOOTER */}
-
       <footer id="contact">
 
         <div className="footerBrand">
@@ -572,8 +563,8 @@ export default function Home() {
           <a href="/#jpg-pdf">JPG to PDF</a>
           <a href="/compressor">Image Compressor</a>
           <a href="/resizer">Image Resizer</a>
+          <a href="/gst-calculator">GST Calculator</a>
           <a href="/#tools">PDF Tools</a>
-          <a href="/#tools">GST Calculator</a>
           <a href="/#tools">QR Generator</a>
 
         </div>
