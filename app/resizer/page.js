@@ -7,72 +7,72 @@ const tools = [
   {
     name: "JPG to PDF",
     icon: "📄",
-    description: "Convert JPG, JPEG or PNG images to PDF.",
+    description: "Convert JPG, JPEG or PNG images to PDF easily.",
     href: "#jpg-pdf",
-    active: true,
+    available: true,
   },
   {
     name: "Image Compressor",
     icon: "🗜️",
-    description: "Reduce image size quickly and easily.",
+    description: "Reduce image size quickly without losing quality.",
     href: "/compressor",
-    active: true,
+    available: true,
   },
   {
     name: "Image Resizer",
     icon: "↗️",
     description: "Resize your images to any dimension.",
     href: "/resizer",
-    active: true,
+    available: true,
   },
   {
     name: "PDF to Word",
     icon: "📝",
     description: "Convert PDF documents into editable Word files.",
     href: "#tools",
-    active: false,
+    available: false,
   },
   {
     name: "PDF to Excel",
     icon: "📊",
     description: "Convert PDF tables into Excel files.",
     href: "#tools",
-    active: false,
+    available: false,
   },
   {
     name: "Word to Excel",
     icon: "📋",
     description: "Convert Word data into Excel format.",
     href: "#tools",
-    active: false,
+    available: false,
   },
   {
     name: "Word to PDF",
     icon: "📑",
     description: "Convert Word documents into PDF.",
     href: "#tools",
-    active: false,
+    available: false,
   },
   {
     name: "Excel to PDF",
     icon: "📈",
     description: "Convert Excel files into PDF.",
     href: "#tools",
-    active: false,
+    available: false,
   },
   {
     name: "GST Calculator",
     icon: "₹",
     description: "Calculate GST, tax and final amount.",
     href: "#tools",
-    active: false,
+    available: false,
   },
   {
     name: "QR Generator",
     icon: "▦",
     description: "Create QR codes for text and links.",
     href: "#tools",
-    active: false,
+    available: false,
   },
 ];
 
@@ -124,14 +124,14 @@ export default function Home() {
           format: [image.width, image.height],
         });
 
-        const imageFormat =
+        const format =
           selectedFile.type === "image/png"
             ? "PNG"
             : "JPEG";
 
         pdf.addImage(
           image,
-          imageFormat,
+          format,
           0,
           0,
           image.width,
@@ -182,11 +182,7 @@ export default function Home() {
           ☰
         </button>
 
-        <div
-          className={`navLinks ${
-            menuOpen ? "open" : ""
-          }`}
-        >
+        <div className={`navLinks ${menuOpen ? "open" : ""}`}>
           <a href="#home">Home</a>
           <a href="#tools">Tools</a>
           <a href="#about">About</a>
@@ -409,21 +405,23 @@ export default function Home() {
                 {tool.description}
               </p>
 
-              {tool.active === true ? (
+              {/* AVAILABLE TOOLS */}
 
+              {tool.available === true && (
                 <a
                   href={tool.href}
                   className="toolButton"
                 >
                   Use Tool →
                 </a>
+              )}
 
-              ) : (
+              {/* COMING SOON TOOLS */}
 
+              {tool.available === false && (
                 <span className="toolButton comingSoon">
                   Coming Soon
                 </span>
-
               )}
 
             </div>
@@ -450,7 +448,7 @@ export default function Home() {
 
         <div>
           <strong>🛡️ Secure</strong>
-          <span>Files stay on your device</span>
+          <span>Your files stay on your device</span>
         </div>
 
         <div>
@@ -589,8 +587,6 @@ export default function Home() {
         </div>
 
       </footer>
-
-      {/* COPYRIGHT */}
 
       <div className="copyright">
 
