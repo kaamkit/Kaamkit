@@ -1,489 +1,214 @@
 "use client";
 
-import Link from "next/link";
+import { useState } from "react";
+
+const tools = [
+  {
+    name: "JPG to PDF",
+    icon: "📄",
+    description: "Convert your images to PDF easily.",
+  },
+  {
+    name: "Image Compressor",
+    icon: "🗜️",
+    description: "Reduce image size without losing quality.",
+  },
+  {
+    name: "Image Resizer",
+    icon: "↗️",
+    description: "Resize your images to any dimension.",
+  },
+  {
+    name: "GST Calculator",
+    icon: "₹",
+    description: "Calculate GST, tax and final amount.",
+  },
+  {
+    name: "QR Generator",
+    icon: "▦",
+    description: "Create QR codes for text and links.",
+  },
+];
 
 export default function Home() {
-  const tools = [
-    {
-      name: "JPG to PDF",
-      icon: "📄",
-      description: "Convert JPG images into PDF files easily.",
-      link: "/jpg-to-pdf",
-    },
-    {
-      name: "Image Compressor",
-      icon: "🗜️",
-      description: "Reduce image size while maintaining good quality.",
-      link: "/image-compressor",
-    },
-    {
-      name: "Image Resizer",
-      icon: "📐",
-      description: "Resize images to your required dimensions.",
-      link: "/image-resizer",
-    },
-    {
-      name: "GST Calculator",
-      icon: "🧮",
-      description: "Calculate GST, CGST, SGST and total amount quickly.",
-      link: "/gst-calculator",
-    },
-    {
-      name: "QR Generator",
-      icon: "🔲",
-      description:
-        "Generate QR codes for text, links and other information.",
-      link: "/qr-generator",
-    },
-    {
-      name: "PDF to Word",
-      icon: "📄",
-      description: "Convert PDF files into editable Word documents.",
-      link: "/pdf-to-word",
-    },
-    {
-      name: "PDF to Excel",
-      icon: "📊",
-      description: "Convert PDF files into Excel spreadsheets.",
-      link: "/pdf-to-excel",
-    },
-    {
-      name: "Word to Excel",
-      icon: "📝",
-      description: "Convert Word documents into Excel spreadsheets.",
-      link: "/word-to-excel",
-    },
-  ];
+  const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <main style={styles.page}>
-      {/* HEADER */}
-      <header style={styles.header}>
-        <Link href="/" style={styles.logo}>
-          KaamKit
-        </Link>
+    <main className="site">
+      <nav className="navbar">
+        <div className="logo">
+          <div className="logoIcon">K</div>
+          <span>Kaam<span>Kit</span></span>
+        </div>
 
-        <nav style={styles.nav}>
-          <a href="#tools" style={styles.navLink}>
-            Tools
-          </a>
+        <button
+          className="menuBtn"
+          onClick={() => setMenuOpen(!menuOpen)}
+        >
+          ☰
+        </button>
 
-          <a href="#why" style={styles.navLink}>
-            Why KaamKit?
-          </a>
-        </nav>
-      </header>
+        <div className={`navLinks ${menuOpen ? "open" : ""}`}>
+          <a href="#home">Home</a>
+          <a href="#tools">Tools</a>
+          <a href="#about">About</a>
+          <a href="#contact">Contact</a>
+        </div>
+      </nav>
 
-      {/* HERO */}
-      <section style={styles.hero}>
-        <div style={styles.badge}>⚡ Free • Fast • Simple</div>
+      <section className="hero" id="home">
+        <div className="heroContent">
+          <div className="badge">⚡ Free • Fast • Secure</div>
 
-        <h1 style={styles.heroTitle}>
-          Powerful tools for
-          <br />
-          <span style={styles.highlight}>everyday work.</span>
-        </h1>
+          <h1>
+            Your Everyday
+            <br />
+            <span>Work Toolkit</span>
+          </h1>
 
-        <p style={styles.heroText}>
-          Convert, compress, resize, calculate and generate —
-          <br />
-          everything you need in one simple place.
-        </p>
+          <p>
+            Simple, powerful and free online tools to make
+            your daily work easier.
+          </p>
 
-        <a href="#tools" style={styles.heroButton}>
-          Explore Free Tools →
-        </a>
+          <div className="searchBox">
+            <span>⌕</span>
+            <input placeholder="Search tools... JPG to PDF, QR, GST" />
+            <button>Search</button>
+          </div>
 
-        <div style={styles.trust}>
-          <span>✓ 100% Free</span>
-          <span>✓ No Registration</span>
-          <span>✓ Easy to Use</span>
+          <div className="trust">
+            <span>✓ 100% Free</span>
+            <span>✓ No Sign Up</span>
+            <span>✓ Works on All Devices</span>
+          </div>
+        </div>
+
+        <div className="heroVisual">
+          <div className="floatingCard card1">📄 PDF</div>
+          <div className="floatingCard card2">🖼️ Image</div>
+          <div className="floatingCard card3">₹ GST</div>
+
+          <div className="laptop">
+            <div className="screen">
+              <div className="bigK">K</div>
+              <strong>KaamKit</strong>
+            </div>
+            <div className="keyboard"></div>
+          </div>
         </div>
       </section>
 
-      {/* TOOLS */}
-      <section id="tools" style={styles.toolsSection}>
-        <div style={styles.sectionHeading}>
-          <div style={styles.smallTitle}>OUR TOOLS</div>
-
-          <h2 style={styles.sectionTitle}>Everything you need</h2>
-
-          <p style={styles.sectionText}>
-            Simple online tools designed to save your time.
-          </p>
+      <section className="toolsSection" id="tools">
+        <div className="sectionTitle">
+          <h2>Our Tools</h2>
+          <p>Choose a tool below and get your work done in seconds.</p>
         </div>
 
-        <div style={styles.grid}>
+        <div className="toolGrid">
           {tools.map((tool) => (
-            <div key={tool.name} style={styles.card}>
-              <div style={styles.iconBox}>{tool.icon}</div>
-
-              <h3 style={styles.cardTitle}>{tool.name}</h3>
-
-              <p style={styles.cardText}>{tool.description}</p>
-
-              <Link href={tool.link} style={styles.cardButton}>
-                Open Tool →
-              </Link>
+            <div className="toolCard" key={tool.name}>
+              <div className="toolIcon">{tool.icon}</div>
+              <h3>{tool.name}</h3>
+              <p>{tool.description}</p>
+              <button>Use Tool →</button>
             </div>
           ))}
         </div>
       </section>
 
-      {/* WHY KAAMKIT */}
-      <section id="why" style={styles.whySection}>
-        <div style={styles.smallTitle}>WHY KAAMKIT?</div>
-
-        <h2 style={styles.sectionTitle}>
-          Work smarter. Get things done.
-        </h2>
-
-        <div style={styles.features}>
-          <div style={styles.feature}>
-            <div style={styles.featureIcon}>⚡</div>
-
-            <h3 style={styles.featureTitle}>Fast</h3>
-
-            <p style={styles.featureText}>
-              Get your work done quickly without complicated steps.
-            </p>
-          </div>
-
-          <div style={styles.feature}>
-            <div style={styles.featureIcon}>🔒</div>
-
-            <h3 style={styles.featureTitle}>Privacy Friendly</h3>
-
-            <p style={styles.featureText}>
-              Your files are processed directly in your browser whenever
-              possible.
-            </p>
-          </div>
-
-          <div style={styles.feature}>
-            <div style={styles.featureIcon}>💯</div>
-
-            <h3 style={styles.featureTitle}>Free to Use</h3>
-
-            <p style={styles.featureText}>
-              Useful everyday tools without registration or unnecessary
-              barriers.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section style={styles.cta}>
-        <div style={styles.ctaBadge}>🚀 MORE TOOLS COMING</div>
-
-        <h2 style={styles.ctaTitle}>
-          More useful tools are on the way.
-        </h2>
-
-        <p style={styles.ctaText}>
-          KaamKit is growing to become your everyday online toolbox.
-        </p>
-      </section>
-
-      {/* FOOTER */}
-      <footer style={styles.footer}>
+      <section className="features">
         <div>
-          <Link href="/" style={styles.footerLogo}>
-            KaamKit
-          </Link>
+          <strong>100%</strong>
+          <span>Free to Use</span>
+        </div>
+        <div>
+          <strong>⚡ Fast</strong>
+          <span>Processing</span>
+        </div>
+        <div>
+          <strong>🛡️ Secure</strong>
+          <span>Your files stay on your device</span>
+        </div>
+        <div>
+          <strong>📱 All Devices</strong>
+          <span>Mobile & Desktop</span>
+        </div>
+      </section>
 
-          <p style={styles.footerText}>
-            Free online tools for everyday work.
-          </p>
+      <section className="why" id="about">
+        <div className="sectionTitle">
+          <h2>Why Choose KaamKit?</h2>
+          <p>Because your time and data matter.</p>
         </div>
 
-        <div style={styles.footerRight}>
-          © {new Date().getFullYear()} KaamKit
+        <div className="whyGrid">
+          <div>
+            <div className="roundIcon">⚡</div>
+            <h3>Super Fast</h3>
+            <p>Get results in seconds.</p>
+          </div>
+
+          <div>
+            <div className="roundIcon">🛡️</div>
+            <h3>Privacy First</h3>
+            <p>Your files stay on your device.</p>
+          </div>
+
+          <div>
+            <div className="roundIcon">₹</div>
+            <h3>Always Free</h3>
+            <p>No hidden charges.</p>
+          </div>
+
+          <div>
+            <div className="roundIcon">📱</div>
+            <h3>All Devices</h3>
+            <p>Works on mobile, tablet & desktop.</p>
+          </div>
+        </div>
+      </section>
+
+      <section className="cta">
+        <div>
+          <h2>Ready to Make Your Work Easier?</h2>
+          <p>Try our free tools and save your time.</p>
+        </div>
+        <a href="#tools">Explore Tools →</a>
+      </section>
+
+      <footer id="contact">
+        <div className="footerBrand">
+          <div className="logo">
+            <div className="logoIcon">K</div>
+            <span>Kaam<span>Kit</span></span>
+          </div>
+          <p>Simple Tools. Better Work.</p>
+          <p>Free online tools for students, professionals and everyone.</p>
+        </div>
+
+        <div>
+          <h3>Quick Links</h3>
+          <a href="#home">Home</a>
+          <a href="#tools">Tools</a>
+          <a href="#about">About</a>
+          <a href="#contact">Contact</a>
+        </div>
+
+        <div>
+          <h3>Popular Tools</h3>
+          <a href="#tools">JPG to PDF</a>
+          <a href="#tools">Image Compressor</a>
+          <a href="#tools">Image Resizer</a>
+          <a href="#tools">GST Calculator</a>
+          <a href="#tools">QR Generator</a>
         </div>
       </footer>
+
+      <div className="copyright">
+        © 2026 KaamKit. All rights reserved.
+        <span>Made with ❤️ in India 🇮🇳</span>
+      </div>
     </main>
   );
 }
-
-const styles = {
-  page: {
-    minHeight: "100vh",
-    background:
-      "linear-gradient(180deg, #f8fafc 0%, #ffffff 45%, #f8fafc 100%)",
-    color: "#111827",
-    fontFamily: "Arial, Helvetica, sans-serif",
-  },
-
-  header: {
-    maxWidth: "1100px",
-    margin: "0 auto",
-    padding: "22px 24px",
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-
-  logo: {
-    fontSize: "28px",
-    fontWeight: "800",
-    letterSpacing: "-1px",
-    color: "#111827",
-    textDecoration: "none",
-  },
-
-  nav: {
-    display: "flex",
-    gap: "26px",
-    alignItems: "center",
-  },
-
-  navLink: {
-    color: "#4b5563",
-    textDecoration: "none",
-    fontSize: "15px",
-    fontWeight: "600",
-  },
-
-  hero: {
-    maxWidth: "900px",
-    margin: "0 auto",
-    textAlign: "center",
-    padding: "65px 24px 85px",
-  },
-
-  badge: {
-    display: "inline-block",
-    background: "#eef2ff",
-    color: "#4f46e5",
-    padding: "9px 16px",
-    borderRadius: "999px",
-    fontSize: "14px",
-    fontWeight: "700",
-    marginBottom: "24px",
-  },
-
-  heroTitle: {
-    fontSize: "clamp(48px, 8vw, 82px)",
-    lineHeight: "1.02",
-    letterSpacing: "-4px",
-    margin: "0",
-    fontWeight: "800",
-  },
-
-  highlight: {
-    background: "linear-gradient(90deg, #2563eb, #7c3aed)",
-    WebkitBackgroundClip: "text",
-    WebkitTextFillColor: "transparent",
-  },
-
-  heroText: {
-    fontSize: "20px",
-    lineHeight: "1.6",
-    color: "#6b7280",
-    margin: "28px 0 34px",
-  },
-
-  heroButton: {
-    display: "inline-block",
-    background: "#111827",
-    color: "#ffffff",
-    padding: "16px 26px",
-    borderRadius: "12px",
-    textDecoration: "none",
-    fontSize: "17px",
-    fontWeight: "700",
-    boxShadow: "0 12px 30px rgba(17, 24, 39, 0.18)",
-  },
-
-  trust: {
-    marginTop: "28px",
-    display: "flex",
-    justifyContent: "center",
-    flexWrap: "wrap",
-    gap: "20px",
-    color: "#6b7280",
-    fontSize: "14px",
-  },
-
-  toolsSection: {
-    maxWidth: "1100px",
-    margin: "0 auto",
-    padding: "70px 24px",
-  },
-
-  sectionHeading: {
-    textAlign: "center",
-    marginBottom: "45px",
-  },
-
-  smallTitle: {
-    color: "#4f46e5",
-    fontSize: "13px",
-    fontWeight: "800",
-    letterSpacing: "2px",
-    marginBottom: "12px",
-  },
-
-  sectionTitle: {
-    fontSize: "42px",
-    lineHeight: "1.15",
-    letterSpacing: "-1.5px",
-    margin: "0 0 12px",
-    fontWeight: "800",
-  },
-
-  sectionText: {
-    color: "#6b7280",
-    fontSize: "18px",
-    lineHeight: "1.5",
-    margin: "0",
-  },
-
-  grid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-    gap: "22px",
-  },
-
-  card: {
-    background: "rgba(255, 255, 255, 0.95)",
-    border: "1px solid #e5e7eb",
-    borderRadius: "22px",
-    padding: "30px",
-    minHeight: "300px",
-    display: "flex",
-    flexDirection: "column",
-    boxShadow: "0 10px 30px rgba(15, 23, 42, 0.06)",
-  },
-
-  iconBox: {
-    width: "62px",
-    height: "62px",
-    borderRadius: "17px",
-    background: "#f1f5f9",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "31px",
-    marginBottom: "22px",
-  },
-
-  cardTitle: {
-    fontSize: "25px",
-    lineHeight: "1.2",
-    margin: "0 0 12px",
-    fontWeight: "750",
-  },
-
-  cardText: {
-    color: "#6b7280",
-    fontSize: "16px",
-    lineHeight: "1.6",
-    margin: "0 0 25px",
-  },
-
-  cardButton: {
-    marginTop: "auto",
-    display: "block",
-    textAlign: "center",
-    background: "#111827",
-    color: "#ffffff",
-    padding: "13px 18px",
-    borderRadius: "10px",
-    textDecoration: "none",
-    fontWeight: "700",
-  },
-
-  whySection: {
-    maxWidth: "1100px",
-    margin: "0 auto",
-    padding: "90px 24px",
-    textAlign: "center",
-  },
-
-  features: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-    gap: "25px",
-    marginTop: "45px",
-  },
-
-  feature: {
-    padding: "25px",
-  },
-
-  featureIcon: {
-    fontSize: "38px",
-    marginBottom: "12px",
-  },
-
-  featureTitle: {
-    fontSize: "21px",
-    margin: "0 0 10px",
-  },
-
-  featureText: {
-    color: "#6b7280",
-    lineHeight: "1.6",
-    margin: "0",
-  },
-
-  cta: {
-    maxWidth: "1000px",
-    margin: "30px auto 90px",
-    padding: "65px 25px",
-    textAlign: "center",
-    borderRadius: "28px",
-    background: "linear-gradient(135deg, #111827, #312e81)",
-    color: "#ffffff",
-  },
-
-  ctaBadge: {
-    fontSize: "13px",
-    fontWeight: "800",
-    letterSpacing: "1.5px",
-    marginBottom: "15px",
-  },
-
-  ctaTitle: {
-    fontSize: "38px",
-    lineHeight: "1.2",
-    margin: "0 0 15px",
-  },
-
-  ctaText: {
-    fontSize: "17px",
-    lineHeight: "1.5",
-    color: "#d1d5db",
-    margin: "0",
-  },
-
-  footer: {
-    maxWidth: "1100px",
-    margin: "0 auto",
-    padding: "35px 24px",
-    borderTop: "1px solid #e5e7eb",
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: "20px",
-  },
-
-  footerLogo: {
-    fontSize: "22px",
-    fontWeight: "800",
-    color: "#111827",
-    textDecoration: "none",
-  },
-
-  footerText: {
-    color: "#6b7280",
-    margin: "7px 0 0",
-  },
-
-  footerRight: {
-    color: "#6b7280",
-    fontSize: "14px",
-  },
-};
