@@ -29,8 +29,8 @@ const tools = [
     name: "PDF to Word",
     icon: "📝",
     description: "Convert PDF documents into editable Word files.",
-    href: "#tools",
-    available: false,
+    href: "/pdf-to-word",
+    available: true,
   },
   {
     name: "PDF to Excel",
@@ -145,7 +145,7 @@ export default function Home() {
         pdf.save(fileName);
       } catch (error) {
         console.error(error);
-        alert("PDF creation failed. Please try again.");
+        alert("PDF creation failed.");
       } finally {
         setLoading(false);
       }
@@ -161,12 +161,16 @@ export default function Home() {
 
   const openTool = (href) => {
     if (href.startsWith("#")) {
-      document
-        .getElementById(href.substring(1))
-        ?.scrollIntoView({
+      const target = document.getElementById(
+        href.substring(1)
+      );
+
+      if (target) {
+        target.scrollIntoView({
           behavior: "smooth",
           block: "start",
         });
+      }
 
       return;
     }
@@ -191,13 +195,19 @@ export default function Home() {
         <button
           type="button"
           className="menuBtn"
-          onClick={() => setMenuOpen((value) => !value)}
-          aria-label="Open menu"
+          onClick={() =>
+            setMenuOpen((current) => !current)
+          }
+          aria-label="Menu"
         >
           ☰
         </button>
 
-        <div className={`navLinks ${menuOpen ? "open" : ""}`}>
+        <div
+          className={`navLinks ${
+            menuOpen ? "open" : ""
+          }`}
+        >
           <a href="/">Home</a>
           <a href="/#tools">Tools</a>
           <a href="/#about">About</a>
@@ -227,6 +237,7 @@ export default function Home() {
           </p>
 
           <div className="searchBox">
+
             <span>⌕</span>
 
             <input
@@ -237,6 +248,7 @@ export default function Home() {
             <button type="button">
               Search
             </button>
+
           </div>
 
           <div className="trust">
@@ -337,6 +349,7 @@ export default function Home() {
               <div className="converterActions">
 
                 <label className="secondaryButton">
+
                   Change Image
 
                   <input
@@ -345,6 +358,7 @@ export default function Home() {
                     onChange={handleFile}
                     hidden
                   />
+
                 </label>
 
                 <button
@@ -407,7 +421,9 @@ export default function Home() {
                 <button
                   type="button"
                   className="toolButton"
-                  onClick={() => openTool(tool.href)}
+                  onClick={() =>
+                    openTool(tool.href)
+                  }
                 >
                   Use Tool →
                 </button>
@@ -492,7 +508,9 @@ export default function Home() {
           <div>
             <div className="roundIcon">📱</div>
             <h3>All Devices</h3>
-            <p>Works on mobile, tablet and desktop.</p>
+            <p>
+              Works on mobile, tablet and desktop.
+            </p>
           </div>
 
         </div>
@@ -571,6 +589,7 @@ export default function Home() {
           <a href="/resizer">Image Resizer</a>
           <a href="/gst-calculator">GST Calculator</a>
           <a href="/qr-generator">QR Generator</a>
+          <a href="/pdf-to-word">PDF to Word</a>
 
         </div>
 
