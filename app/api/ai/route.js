@@ -11,7 +11,7 @@ export async function POST(request) {
       );
     }
 
-    const apiKey = process.env.AI_GATEWAY_API_KEY;
+    const apiKey = process.env.KAAMKIT_AI_API_KEY;
 
     if (!apiKey) {
       return NextResponse.json(
