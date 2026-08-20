@@ -1,95 +1,111 @@
 "use client";
 
 import { useState } from "react";
+import * as XLSX from "xlsx";
 
-export default function PdfToExcel() {
+export default function PDFToExcel() {
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [success, setSuccess] = useState(false);
 
-  const handleConvert = async () => {
-    if (!file) {
-      setMessage("Please select a PDF file first.");
+  const handleFileChange = (event) => {
+    const selectedFile = event.target.files?.[0];
+
+    setMessage("");
+    setSuccess(false);
+
+    if (!selectedFile) {
+      setFile(null);
       return;
     }
 
-    try {
-      setLoading(true);
-      setMessage("Loading PDF converter...");
+    if (selectedFile.type !== "application/pdf") {
+      setFile(null);
+      setMessage("Please select a valid PDF file.");
+      return;
+    }
 
-      // Load PDF.js only in browser
+    if (selectedFile.size > 25 * 1024 * 1024) {
+      setFile(null);
+      setMessage("PDF size must be less than 25 MB.");
+      return;
+    }
+
+    setFile(selectedFile);
+  };
+
+  const convertToExcel = async () => {
+    if (!file) {
+      setMessage("Please select a PDF file first.");
+      setSuccess(false);
+      return;
+    }
+
+    setLoading(true);
+    setMessage("");
+    setSuccess(false);
+
+    try {
       const pdfjsLib = await import(
         "pdfjs-dist/legacy/build/pdf.mjs"
       );
 
-      // PDF.js worker
-      pdfjsLib.GlobalWorkerOptions.workerSrc =
-        "https://unpkg.com/pdfjs-dist@6.2.108/legacy/build/pdf.worker.min.mjs";
-
-      // Load Excel library
-      const XLSX = await import("xlsx");
-
-      setMessage("Reading PDF...");
-
       const arrayBuffer = await file.arrayBuffer();
 
-      const pdf = await pdfjsLib.getDocument({
-        data: new Uint8Array(arrayBuffer),
-      }).promise;
+      const pdf = await pdfjsLib
+        .getDocument({
+          data: new Uint8Array(arrayBuffer),
+          disableWorker: true,
+        })
+        .promise;
 
       const workbook = XLSX.utils.book_new();
+
+      let totalRows = 0;
 
       for (
         let pageNumber = 1;
         pageNumber <= pdf.numPages;
         pageNumber++
       ) {
-        setMessage(
-          `Reading page ${pageNumber} of ${pdf.numPages}...`
-        );
-
         const page = await pdf.getPage(pageNumber);
 
         const textContent = await page.getTextContent();
 
-        const items = textContent.items
+        const items = (textContent.items || [])
           .filter((item) => item.str && item.str.trim())
           .map((item) => ({
             text: item.str.trim(),
-            x: item.transform?.[4] || 0,
-            y: item.transform?.[5] || 0,
+            x:
+              item.transform && item.transform.length >= 6
+                ? item.transform[4]
+                : 0,
+            y:
+              item.transform && item.transform.length >= 6
+                ? item.transform[5]
+                : 0,
           }));
 
-        if (items.length === 0) {
-          const emptySheet = XLSX.utils.aoa_to_sheet([
-            ["No readable text found on this page"],
-          ]);
-
-          XLSX.utils.book_append_sheet(
-            workbook,
-            emptySheet,
-            `Page ${pageNumber}`
-          );
-
+        if (!items.length) {
           continue;
         }
 
-        // Sort items from top to bottom
+        // Group PDF text into visual rows.
         items.sort((a, b) => {
-          if (Math.abs(a.y - b.y) > 5) {
-            return b.y - a.y;
+          if (Math.abs(a.y - b.y) < 5) {
+            return a.x - b.x;
           }
 
-          return a.x - b.x;
+          return b.y - a.y;
         });
 
-        // Group text items into rows
         const rows = [];
 
         for (const item of items) {
           let row = rows.find(
             (existingRow) =>
-              Math.abs(existingRow.y - item.y) <= 5
+              Math.abs(existingRow.y - item.y) < 5
           );
 
           if (!row) {
@@ -104,101 +120,122 @@ export default function PdfToExcel() {
           row.items.push(item);
         }
 
-        // Sort rows top to bottom
         rows.sort((a, b) => b.y - a.y);
 
-        // Convert rows into columns
-        const data = rows.map((row) => {
+        const sheetData = [];
+
+        rows.forEach((row) => {
           row.items.sort((a, b) => a.x - b.x);
 
-          return row.items.map((item) => item.text);
-        });
+          const cells = [];
 
-        // Find maximum number of columns
-        const maxColumns = Math.max(
-          ...data.map((row) => row.length)
-        );
+          let previousX = null;
 
-        // Make every row same column length
-        const normalizedData = data.map((row) => {
-          const newRow = [...row];
-
-          while (newRow.length < maxColumns) {
-            newRow.push("");
-          }
-
-          return newRow;
-        });
-
-        const worksheet =
-          XLSX.utils.aoa_to_sheet(normalizedData);
-
-        // Auto column widths
-        const columnWidths = [];
-
-        for (let column = 0; column < maxColumns; column++) {
-          let maxLength = 10;
-
-          for (const row of normalizedData) {
-            const value = row[column] || "";
-
-            if (String(value).length > maxLength) {
-              maxLength = String(value).length;
+          row.items.forEach((item) => {
+            if (
+              previousX !== null &&
+              item.x - previousX > 25
+            ) {
+              cells.push("");
             }
-          }
 
-          columnWidths.push({
-            wch: Math.min(maxLength + 2, 40),
+            cells.push(item.text);
+
+            previousX = item.x;
           });
+
+          if (cells.length) {
+            sheetData.push(cells);
+            totalRows++;
+          }
+        });
+
+        if (sheetData.length) {
+          const worksheet =
+            XLSX.utils.aoa_to_sheet(sheetData);
+
+          worksheet["!cols"] = Array.from(
+            {
+              length: Math.max(
+                ...sheetData.map((row) => row.length)
+              ),
+            },
+            () => ({
+              wch: 20,
+            })
+          );
+
+          XLSX.utils.book_append_sheet(
+            workbook,
+            worksheet,
+            `Page ${pageNumber}`
+          );
         }
+      }
 
-        worksheet["!cols"] = columnWidths;
-
-        XLSX.utils.book_append_sheet(
-          workbook,
-          worksheet,
-          `Page ${pageNumber}`
+      if (totalRows === 0) {
+        throw new Error(
+          "No selectable text or table data was found in this PDF."
         );
       }
 
-      setMessage("Creating Excel file...");
-
-      const excelData = XLSX.write(workbook, {
+      const excelBuffer = XLSX.write(workbook, {
         bookType: "xlsx",
         type: "array",
       });
 
-      const blob = new Blob([excelData], {
+      const blob = new Blob([excelBuffer], {
         type:
           "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       });
 
-      const downloadUrl = URL.createObjectURL(blob);
+      const url = URL.createObjectURL(blob);
 
       const link = document.createElement("a");
 
-      link.href = downloadUrl;
-      link.download =
-        file.name.replace(/\.pdf$/i, "") + ".xlsx";
+      link.href = url;
+
+      const originalName = file.name.replace(
+        /\.pdf$/i,
+        ""
+      );
+
+      link.download = `${originalName}.xlsx`;
 
       document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
+      link.remove();
 
-      URL.revokeObjectURL(downloadUrl);
+      URL.revokeObjectURL(url);
 
+      setSuccess(true);
       setMessage(
-        "✅ PDF successfully converted to Excel!"
+        "PDF converted successfully. Your Excel file has been downloaded."
       );
     } catch (error) {
-      console.error("PDF to Excel Error:", error);
+      console.error("PDF to Excel error:", error);
 
+      setSuccess(false);
       setMessage(
-        "Conversion failed: " +
-          (error?.message || "Unknown error")
+        "Conversion failed. This tool works best with text-based PDFs containing tables."
       );
     } finally {
       setLoading(false);
+    }
+  };
+
+  const resetTool = () => {
+    setFile(null);
+    setMessage("");
+    setSuccess(false);
+    setLoading(false);
+
+    const input = document.getElementById(
+      "pdf-excel-input"
+    );
+
+    if (input) {
+      input.value = "";
     }
   };
 
@@ -206,110 +243,309 @@ export default function PdfToExcel() {
     <main
       style={{
         minHeight: "100vh",
-        padding: "40px 20px",
-        background: "#f5f7fa",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "flex-start",
+        background: "#f4f8ff",
+        color: "#14213d",
+        fontFamily: "Arial, sans-serif",
       }}
     >
-      <div
+      <header
         style={{
-          width: "100%",
-          maxWidth: "600px",
-          background: "#ffffff",
-          padding: "35px",
-          marginTop: "30px",
-          borderRadius: "18px",
-          boxShadow: "0 8px 30px rgba(0,0,0,0.08)",
-          textAlign: "center",
+          background: "#fff",
+          borderBottom: "1px solid #e5edf7",
+          padding: "16px 20px",
         }}
       >
-        <h1
+        <div
           style={{
-            fontSize: "36px",
-            marginBottom: "10px",
+            maxWidth: "900px",
+            margin: "auto",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
           }}
         >
-          PDF to Excel
-        </h1>
+          <a
+            href="/"
+            style={{
+              textDecoration: "none",
+              color: "#14213d",
+              fontSize: "24px",
+              fontWeight: "800",
+            }}
+          >
+            <span
+              style={{
+                display: "inline-flex",
+                width: "42px",
+                height: "42px",
+                borderRadius: "12px",
+                background: "#1677ff",
+                color: "#fff",
+                alignItems: "center",
+                justifyContent: "center",
+                marginRight: "10px",
+              }}
+            >
+              K
+            </span>
+            Kaam<span style={{ color: "#1677ff" }}>Kit</span>
+          </a>
 
-        <p
+          <a
+            href="/"
+            style={{
+              textDecoration: "none",
+              color: "#1677ff",
+              fontWeight: "700",
+            }}
+          >
+            ← Home
+          </a>
+        </div>
+      </header>
+
+      <section
+        style={{
+          maxWidth: "850px",
+          margin: "auto",
+          padding: "45px 20px 70px",
+        }}
+      >
+        <div
           style={{
-            color: "#666",
-            fontSize: "18px",
+            textAlign: "center",
             marginBottom: "30px",
           }}
         >
-          Convert your PDF files into Excel spreadsheets.
-        </p>
-
-        <input
-          type="file"
-          accept=".pdf,application/pdf"
-          onChange={(e) => {
-            setFile(e.target.files?.[0] || null);
-            setMessage("");
-          }}
-          style={{
-            width: "100%",
-            padding: "15px",
-            border: "1px solid #ddd",
-            borderRadius: "10px",
-            marginBottom: "20px",
-            boxSizing: "border-box",
-          }}
-        />
-
-        {file && (
-          <p
+          <div
             style={{
-              marginBottom: "20px",
-              color: "#333",
-              wordBreak: "break-word",
+              width: "78px",
+              height: "78px",
+              margin: "0 auto 16px",
+              borderRadius: "20px",
+              background: "#e7f1ff",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "42px",
             }}
           >
-            Selected: <strong>{file.name}</strong>
-          </p>
-        )}
+            📊
+          </div>
 
-        <button
-          onClick={handleConvert}
-          disabled={loading}
+          <h1
+            style={{
+              margin: "0 0 10px",
+              fontSize: "38px",
+            }}
+          >
+            PDF to Excel Converter
+          </h1>
+
+          <p
+            style={{
+              margin: 0,
+              color: "#718096",
+              fontSize: "17px",
+            }}
+          >
+            Extract PDF text and table-like data into Excel.
+          </p>
+        </div>
+
+        <div
           style={{
-            width: "100%",
-            padding: "16px",
-            border: "none",
-            borderRadius: "10px",
-            background: loading ? "#999" : "#111827",
-            color: "#ffffff",
-            fontSize: "18px",
-            fontWeight: "600",
-            cursor: loading
-              ? "not-allowed"
-              : "pointer",
+            background: "#fff",
+            borderRadius: "24px",
+            padding: "30px",
+            border: "1px solid #e4ecf7",
+            boxShadow:
+              "0 15px 45px rgba(30,80,140,.10)",
           }}
         >
-          {loading
-            ? "Converting..."
-            : "Convert to Excel"}
-        </button>
-
-        {message && (
-          <p
+          <label
+            htmlFor="pdf-excel-input"
             style={{
-              marginTop: "22px",
-              color: message.startsWith("✅")
-                ? "green"
-                : "#555",
-              fontSize: "16px",
-              lineHeight: "1.5",
+              display: "block",
+              border: "2px dashed #9fc5ff",
+              borderRadius: "18px",
+              padding: "40px 20px",
+              textAlign: "center",
+              background: "#f8fbff",
+              cursor: "pointer",
             }}
           >
-            {message}
-          </p>
-        )}
-      </div>
+            <div
+              style={{
+                fontSize: "48px",
+                marginBottom: "12px",
+              }}
+            >
+              📄
+            </div>
+
+            <h2
+              style={{
+                margin: "0 0 8px",
+                fontSize: "21px",
+              }}
+            >
+              Select PDF File
+            </h2>
+
+            <p
+              style={{
+                margin: 0,
+                color: "#718096",
+              }}
+            >
+              Maximum file size: 25 MB
+            </p>
+
+            <input
+              id="pdf-excel-input"
+              type="file"
+              accept="application/pdf,.pdf"
+              onChange={handleFileChange}
+              style={{ display: "none" }}
+            />
+          </label>
+
+          {file && (
+            <div
+              style={{
+                marginTop: "20px",
+                padding: "15px",
+                borderRadius: "14px",
+                background: "#f0f7ff",
+                border: "1px solid #d7e9ff",
+              }}
+            >
+              <strong
+                style={{
+                  display: "block",
+                  wordBreak: "break-word",
+                }}
+              >
+                📄 {file.name}
+              </strong>
+
+              <span
+                style={{
+                  display: "block",
+                  marginTop: "5px",
+                  color: "#718096",
+                  fontSize: "14px",
+                }}
+              >
+                {(file.size / 1024 / 1024).toFixed(2)} MB
+              </span>
+            </div>
+          )}
+
+          <button
+            type="button"
+            onClick={convertToExcel}
+            disabled={loading || !file}
+            style={{
+              width: "100%",
+              marginTop: "22px",
+              padding: "16px",
+              border: "none",
+              borderRadius: "12px",
+              background:
+                loading || !file
+                  ? "#9bbbe8"
+                  : "#1677ff",
+              color: "#fff",
+              fontSize: "17px",
+              fontWeight: "800",
+              cursor:
+                loading || !file
+                  ? "not-allowed"
+                  : "pointer",
+            }}
+          >
+            {loading
+              ? "Converting PDF..."
+              : "Convert to Excel →"}
+          </button>
+
+          {message && (
+            <div
+              style={{
+                marginTop: "18px",
+                padding: "15px",
+                borderRadius: "12px",
+                background: success
+                  ? "#ecfdf3"
+                  : "#fff4f4",
+                border: success
+                  ? "1px solid #b7ebc6"
+                  : "1px solid #ffcaca",
+                color: success
+                  ? "#18794e"
+                  : "#b42318",
+                lineHeight: "1.5",
+                fontSize: "14px",
+              }}
+            >
+              {success ? "✅ " : "⚠️ "}
+              {message}
+            </div>
+          )}
+
+          <button
+            type="button"
+            onClick={resetTool}
+            style={{
+              width: "100%",
+              marginTop: "15px",
+              padding: "14px",
+              borderRadius: "12px",
+              border: "1px solid #cbd5e1",
+              background: "#fff",
+              color: "#14213d",
+              fontSize: "16px",
+              fontWeight: "700",
+              cursor: "pointer",
+            }}
+          >
+            Reset
+          </button>
+
+          <div
+            style={{
+              marginTop: "25px",
+              padding: "18px",
+              borderRadius: "15px",
+              background: "#f8fafc",
+              border: "1px solid #e2e8f0",
+              color: "#64748b",
+              fontSize: "14px",
+              lineHeight: "1.6",
+            }}
+          >
+            <strong style={{ color: "#334155" }}>
+              Note:
+            </strong>{" "}
+            This version works best with PDFs containing
+            selectable text and table-like layouts. Scanned
+            image PDFs may require OCR for accurate extraction.
+          </div>
+        </div>
+      </section>
+
+      <footer
+        style={{
+          textAlign: "center",
+          padding: "25px 20px",
+          color: "#718096",
+          fontSize: "14px",
+        }}
+      >
+        © {new Date().getFullYear()} KaamKit. Free online tools.
+      </footer>
     </main>
   );
 }
