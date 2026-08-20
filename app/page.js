@@ -42,9 +42,9 @@ const tools = [
   {
     name: "Word to Excel",
     icon: "📋",
-    description: "Convert Word data into Excel format.",
-    href: "#tools",
-    available: false,
+    description: "Convert Word tables and content into Excel.",
+    href: "/word-to-excel",
+    available: true,
   },
   {
     name: "Word to PDF",
@@ -176,6 +176,7 @@ export default function Home() {
 
         <a href="/" className="logo">
           <div className="logoIcon">K</div>
+
           <span>
             Kaam<span>Kit</span>
           </span>
@@ -257,12 +258,14 @@ export default function Home() {
           </div>
 
           <div className="laptop">
+
             <div className="screen">
               <div className="bigK">K</div>
               <strong>KaamKit</strong>
             </div>
 
             <div className="keyboard"></div>
+
           </div>
 
         </div>
@@ -554,6 +557,7 @@ export default function Home() {
           <a href="/qr-generator">QR Generator</a>
           <a href="/pdf-to-word">PDF to Word</a>
           <a href="/pdf-to-excel">PDF to Excel</a>
+          <a href="/word-to-excel">Word to Excel</a>
 
         </div>
 
