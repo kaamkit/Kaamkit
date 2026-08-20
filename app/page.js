@@ -8,31 +8,42 @@ const tools = [
     name: "JPG to PDF",
     icon: "📄",
     description: "Convert your images to PDF easily.",
+    href: "#jpg-pdf",
+    button: "Use Tool →",
   },
   {
     name: "Image Compressor",
     icon: "🗜️",
     description: "Reduce image size without losing quality.",
+    href: "/compressor",
+    button: "Use Tool →",
   },
   {
     name: "Image Resizer",
     icon: "↗️",
     description: "Resize your images to any dimension.",
+    href: "#tools",
+    button: "Coming Soon",
   },
   {
     name: "GST Calculator",
     icon: "₹",
     description: "Calculate GST, tax and final amount.",
+    href: "#tools",
+    button: "Coming Soon",
   },
   {
     name: "QR Generator",
     icon: "▦",
     description: "Create QR codes for text and links.",
+    href: "#tools",
+    button: "Coming Soon",
   },
 ];
 
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
+
   const [selectedFile, setSelectedFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -69,26 +80,40 @@ export default function Home() {
     const image = new Image();
 
     image.onload = () => {
-      const pdf = new jsPDF({
-        orientation: image.width > image.height ? "landscape" : "portrait",
-        unit: "px",
-        format: [image.width, image.height],
-      });
+      try {
+        const pdf = new jsPDF({
+          orientation:
+            image.width > image.height
+              ? "landscape"
+              : "portrait",
+          unit: "px",
+          format: [image.width, image.height],
+        });
 
-      pdf.addImage(
-        image,
-        "JPEG",
-        0,
-        0,
-        image.width,
-        image.height
-      );
+        pdf.addImage(
+          image,
+          "JPEG",
+          0,
+          0,
+          image.width,
+          image.height
+        );
 
-      pdf.save(
-        selectedFile.name.replace(/\.[^/.]+$/, "") + ".pdf"
-      );
+        const fileName =
+          selectedFile.name.replace(/\.[^/.]+$/, "") + ".pdf";
 
+        pdf.save(fileName);
+      } catch (error) {
+        console.error(error);
+        alert("PDF creation failed. Please try another image.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    image.onerror = () => {
       setLoading(false);
+      alert("Unable to process this image.");
     };
 
     image.src = preview;
@@ -96,32 +121,71 @@ export default function Home() {
 
   return (
     <main className="site">
+
+      {/* NAVBAR */}
+
       <nav className="navbar">
-        <div className="logo">
+
+        <a href="#home" className="logo">
           <div className="logoIcon">K</div>
+
           <span>
             Kaam<span>Kit</span>
           </span>
-        </div>
+        </a>
 
         <button
           className="menuBtn"
           onClick={() => setMenuOpen(!menuOpen)}
+          aria-label="Open menu"
         >
           ☰
         </button>
 
-        <div className={`navLinks ${menuOpen ? "open" : ""}`}>
-          <a href="#home">Home</a>
-          <a href="#tools">Tools</a>
-          <a href="#about">About</a>
-          <a href="#contact">Contact</a>
+        <div
+          className={`navLinks ${
+            menuOpen ? "open" : ""
+          }`}
+        >
+          <a
+            href="#home"
+            onClick={() => setMenuOpen(false)}
+          >
+            Home
+          </a>
+
+          <a
+            href="#tools"
+            onClick={() => setMenuOpen(false)}
+          >
+            Tools
+          </a>
+
+          <a
+            href="#about"
+            onClick={() => setMenuOpen(false)}
+          >
+            About
+          </a>
+
+          <a
+            href="#contact"
+            onClick={() => setMenuOpen(false)}
+          >
+            Contact
+          </a>
         </div>
       </nav>
 
+      {/* HERO */}
+
       <section className="hero" id="home">
+
         <div className="heroContent">
-          <div className="badge">⚡ Free • Fast • Secure</div>
+
+          <div className="badge">
+            ⚡ Free • Fast • Secure
+          </div>
 
           <h1>
             Your Everyday
@@ -135,49 +199,101 @@ export default function Home() {
           </p>
 
           <div className="searchBox">
+
             <span>⌕</span>
-            <input placeholder="Search tools..." />
-            <button>Search</button>
+
+            <input
+              type="text"
+              placeholder="Search tools... JPG to PDF, QR, GST"
+            />
+
+            <button type="button">
+              Search
+            </button>
+
           </div>
 
           <div className="trust">
+
             <span>✓ 100% Free</span>
+
             <span>✓ No Sign Up</span>
+
             <span>✓ Works on All Devices</span>
+
           </div>
+
         </div>
 
         <div className="heroVisual">
-          <div className="floatingCard card1">📄 PDF</div>
-          <div className="floatingCard card2">🖼️ Image</div>
-          <div className="floatingCard card3">₹ GST</div>
+
+          <div className="floatingCard card1">
+            📄 PDF
+          </div>
+
+          <div className="floatingCard card2">
+            🖼️ Image
+          </div>
+
+          <div className="floatingCard card3">
+            ₹ GST
+          </div>
 
           <div className="laptop">
+
             <div className="screen">
-              <div className="bigK">K</div>
-              <strong>KaamKit</strong>
+
+              <div className="bigK">
+                K
+              </div>
+
+              <strong>
+                KaamKit
+              </strong>
+
             </div>
+
             <div className="keyboard"></div>
+
           </div>
+
         </div>
+
       </section>
 
       {/* JPG TO PDF */}
 
-      <section className="converterSection" id="jpg-pdf">
+      <section
+        className="converterSection"
+        id="jpg-pdf"
+      >
+
         <div className="sectionTitle">
-          <h2>JPG to PDF Converter</h2>
+
+          <h2>
+            JPG to PDF Converter
+          </h2>
+
           <p>
-            Convert your JPG, PNG or other images into a PDF instantly.
+            Convert your JPG, JPEG or PNG images
+            into a PDF instantly.
           </p>
+
         </div>
 
         <div className="converterCard">
-          {!preview ? (
-            <label className="uploadBox">
-              <div className="uploadIcon">📤</div>
 
-              <h3>Upload an Image</h3>
+          {!preview ? (
+
+            <label className="uploadBox">
+
+              <div className="uploadIcon">
+                📤
+              </div>
+
+              <h3>
+                Upload an Image
+              </h3>
 
               <p>
                 JPG, JPEG or PNG
@@ -193,9 +309,13 @@ export default function Home() {
                 onChange={handleFile}
                 hidden
               />
+
             </label>
+
           ) : (
+
             <div className="previewArea">
+
               <img
                 src={preview}
                 alt="Selected image"
@@ -207,14 +327,18 @@ export default function Home() {
               </div>
 
               <div className="converterActions">
+
                 <label className="secondaryButton">
+
                   Change Image
+
                   <input
                     type="file"
                     accept="image/*"
                     onChange={handleFile}
                     hidden
                   />
+
                 </label>
 
                 <button
@@ -222,45 +346,81 @@ export default function Home() {
                   onClick={convertToPDF}
                   disabled={loading}
                 >
-                  {loading ? "Creating PDF..." : "Download PDF →"}
+                  {loading
+                    ? "Creating PDF..."
+                    : "Download PDF →"}
                 </button>
+
               </div>
+
             </div>
+
           )}
+
         </div>
+
       </section>
 
       {/* TOOLS */}
 
-      <section className="toolsSection" id="tools">
+      <section
+        className="toolsSection"
+        id="tools"
+      >
+
         <div className="sectionTitle">
-          <h2>Our Tools</h2>
+
+          <h2>
+            Our Tools
+          </h2>
+
           <p>
-            Choose a tool below and get your work done in seconds.
+            Choose a tool below and get your
+            work done in seconds.
           </p>
+
         </div>
 
         <div className="toolGrid">
-          {tools.map((tool, index) => (
-            <div className="toolCard" key={tool.name}>
-              <div className="toolIcon">{tool.icon}</div>
 
-              <h3>{tool.name}</h3>
+          {tools.map((tool) => (
 
-              <p>{tool.description}</p>
+            <div
+              className="toolCard"
+              key={tool.name}
+            >
+
+              <div className="toolIcon">
+                {tool.icon}
+              </div>
+
+              <h3>
+                {tool.name}
+              </h3>
+
+              <p>
+                {tool.description}
+              </p>
 
               <a
-                href={index === 0 ? "#jpg-pdf" : "#tools"}
+                href={tool.href}
                 className="toolButton"
               >
-                {index === 0 ? "Use Tool →" : "Coming Soon"}
+                {tool.button}
               </a>
+
             </div>
+
           ))}
+
         </div>
+
       </section>
 
+      {/* FEATURES */}
+
       <section className="features">
+
         <div>
           <strong>100%</strong>
           <span>Free to Use</span>
@@ -273,96 +433,228 @@ export default function Home() {
 
         <div>
           <strong>🛡️ Secure</strong>
-          <span>Your files stay on your device</span>
+          <span>
+            Your files stay on your device
+          </span>
         </div>
 
         <div>
           <strong>📱 All Devices</strong>
-          <span>Mobile & Desktop</span>
+          <span>
+            Mobile & Desktop
+          </span>
         </div>
+
       </section>
 
-      <section className="why" id="about">
+      {/* WHY K AAMKIT */}
+
+      <section
+        className="why"
+        id="about"
+      >
+
         <div className="sectionTitle">
-          <h2>Why Choose KaamKit?</h2>
-          <p>Because your time and data matter.</p>
+
+          <h2>
+            Why Choose KaamKit?
+          </h2>
+
+          <p>
+            Because your time and data matter.
+          </p>
+
         </div>
 
         <div className="whyGrid">
+
           <div>
-            <div className="roundIcon">⚡</div>
-            <h3>Super Fast</h3>
-            <p>Get results in seconds.</p>
+
+            <div className="roundIcon">
+              ⚡
+            </div>
+
+            <h3>
+              Super Fast
+            </h3>
+
+            <p>
+              Get results in seconds.
+            </p>
+
           </div>
 
           <div>
-            <div className="roundIcon">🛡️</div>
-            <h3>Privacy First</h3>
-            <p>Your files stay on your device.</p>
+
+            <div className="roundIcon">
+              🛡️
+            </div>
+
+            <h3>
+              Privacy First
+            </h3>
+
+            <p>
+              Your files stay on your device.
+            </p>
+
           </div>
 
           <div>
-            <div className="roundIcon">₹</div>
-            <h3>Always Free</h3>
-            <p>No hidden charges.</p>
+
+            <div className="roundIcon">
+              ₹
+            </div>
+
+            <h3>
+              Always Free
+            </h3>
+
+            <p>
+              No hidden charges.
+            </p>
+
           </div>
 
           <div>
-            <div className="roundIcon">📱</div>
-            <h3>All Devices</h3>
-            <p>Works on mobile, tablet & desktop.</p>
+
+            <div className="roundIcon">
+              📱
+            </div>
+
+            <h3>
+              All Devices
+            </h3>
+
+            <p>
+              Works on mobile, tablet & desktop.
+            </p>
+
           </div>
+
         </div>
+
       </section>
+
+      {/* CTA */}
 
       <section className="cta">
+
         <div>
-          <h2>Ready to Make Your Work Easier?</h2>
-          <p>Try our free tools and save your time.</p>
+
+          <h2>
+            Ready to Make Your Work Easier?
+          </h2>
+
+          <p>
+            Try our free tools and save your time.
+          </p>
+
         </div>
 
-        <a href="#tools">Explore Tools →</a>
+        <a href="#tools">
+          Explore Tools →
+        </a>
+
       </section>
 
+      {/* FOOTER */}
+
       <footer id="contact">
+
         <div className="footerBrand">
+
           <div className="logo">
-            <div className="logoIcon">K</div>
+
+            <div className="logoIcon">
+              K
+            </div>
 
             <span>
               Kaam<span>Kit</span>
             </span>
+
           </div>
 
-          <p>Simple Tools. Better Work.</p>
+          <p>
+            Simple Tools. Better Work.
+          </p>
 
           <p>
-            Free online tools for students, professionals and everyone.
+            Free online tools for students,
+            professionals and everyone.
           </p>
+
         </div>
 
         <div>
-          <h3>Quick Links</h3>
-          <a href="#home">Home</a>
-          <a href="#tools">Tools</a>
-          <a href="#about">About</a>
-          <a href="#contact">Contact</a>
+
+          <h3>
+            Quick Links
+          </h3>
+
+          <a href="#home">
+            Home
+          </a>
+
+          <a href="#tools">
+            Tools
+          </a>
+
+          <a href="#about">
+            About
+          </a>
+
+          <a href="#contact">
+            Contact
+          </a>
+
         </div>
 
         <div>
-          <h3>Popular Tools</h3>
-          <a href="#jpg-pdf">JPG to PDF</a>
-          <a href="#tools">Image Compressor</a>
-          <a href="#tools">Image Resizer</a>
-          <a href="#tools">GST Calculator</a>
-          <a href="#tools">QR Generator</a>
+
+          <h3>
+            Popular Tools
+          </h3>
+
+          <a href="#jpg-pdf">
+            JPG to PDF
+          </a>
+
+          <a href="/compressor">
+            Image Compressor
+          </a>
+
+          <a href="#tools">
+            Image Resizer
+          </a>
+
+          <a href="#tools">
+            GST Calculator
+          </a>
+
+          <a href="#tools">
+            QR Generator
+          </a>
+
         </div>
+
       </footer>
 
+      {/* COPYRIGHT */}
+
       <div className="copyright">
-        <span>© 2026 KaamKit. All rights reserved.</span>
-        <span>Made with ❤️ in India 🇮🇳</span>
+
+        <span>
+          © 2026 KaamKit. All rights reserved.
+        </span>
+
+        <span>
+          Made with ❤️ in India 🇮🇳
+        </span>
+
       </div>
+
     </main>
   );
 }
