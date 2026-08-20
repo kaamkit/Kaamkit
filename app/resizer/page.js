@@ -7,37 +7,72 @@ const tools = [
   {
     name: "JPG to PDF",
     icon: "📄",
-    description: "Convert your images to PDF easily.",
+    description: "Convert JPG, JPEG or PNG images to PDF.",
     href: "#jpg-pdf",
-    button: "Use Tool →",
+    active: true,
   },
   {
     name: "Image Compressor",
     icon: "🗜️",
     description: "Reduce image size quickly and easily.",
     href: "/compressor",
-    button: "Use Tool →",
+    active: true,
   },
   {
     name: "Image Resizer",
     icon: "↗️",
     description: "Resize your images to any dimension.",
     href: "/resizer",
-    button: "Use Tool →",
+    active: true,
+  },
+  {
+    name: "PDF to Word",
+    icon: "📝",
+    description: "Convert PDF documents into editable Word files.",
+    href: "#tools",
+    active: false,
+  },
+  {
+    name: "PDF to Excel",
+    icon: "📊",
+    description: "Convert PDF tables into Excel files.",
+    href: "#tools",
+    active: false,
+  },
+  {
+    name: "Word to Excel",
+    icon: "📋",
+    description: "Convert Word data into Excel format.",
+    href: "#tools",
+    active: false,
+  },
+  {
+    name: "Word to PDF",
+    icon: "📑",
+    description: "Convert Word documents into PDF.",
+    href: "#tools",
+    active: false,
+  },
+  {
+    name: "Excel to PDF",
+    icon: "📈",
+    description: "Convert Excel files into PDF.",
+    href: "#tools",
+    active: false,
   },
   {
     name: "GST Calculator",
     icon: "₹",
     description: "Calculate GST, tax and final amount.",
     href: "#tools",
-    button: "Coming Soon",
+    active: false,
   },
   {
     name: "QR Generator",
     icon: "▦",
     description: "Create QR codes for text and links.",
     href: "#tools",
-    button: "Coming Soon",
+    active: false,
   },
 ];
 
@@ -80,13 +115,11 @@ export default function Home() {
 
     image.onload = () => {
       try {
-        const orientation =
-          image.width > image.height
-            ? "landscape"
-            : "portrait";
-
         const pdf = new jsPDF({
-          orientation,
+          orientation:
+            image.width > image.height
+              ? "landscape"
+              : "portrait",
           unit: "px",
           format: [image.width, image.height],
         });
@@ -112,7 +145,7 @@ export default function Home() {
         pdf.save(fileName);
       } catch (error) {
         console.error(error);
-        alert("PDF creation failed. Please try another image.");
+        alert("PDF creation failed.");
       } finally {
         setLoading(false);
       }
@@ -144,7 +177,6 @@ export default function Home() {
         <button
           className="menuBtn"
           onClick={() => setMenuOpen(!menuOpen)}
-          aria-label="Menu"
         >
           ☰
         </button>
@@ -223,15 +255,8 @@ export default function Home() {
           <div className="laptop">
 
             <div className="screen">
-
-              <div className="bigK">
-                K
-              </div>
-
-              <strong>
-                KaamKit
-              </strong>
-
+              <div className="bigK">K</div>
+              <strong>KaamKit</strong>
             </div>
 
             <div className="keyboard"></div>
@@ -383,20 +408,20 @@ export default function Home() {
                 {tool.description}
               </p>
 
-              {tool.button === "Coming Soon" ? (
-
-                <span className="toolButton comingSoon">
-                  Coming Soon
-                </span>
-
-              ) : (
+              {tool.active ? (
 
                 <a
                   href={tool.href}
                   className="toolButton"
                 >
-                  {tool.button}
+                  Use Tool →
                 </a>
+
+              ) : (
+
+                <span className="toolButton comingSoon">
+                  Coming Soon
+                </span>
 
               )}
 
@@ -434,7 +459,7 @@ export default function Home() {
 
       </section>
 
-      {/* WHY K AAMKIT */}
+      {/* ABOUT */}
 
       <section
         className="why"
@@ -456,67 +481,27 @@ export default function Home() {
         <div className="whyGrid">
 
           <div>
-
-            <div className="roundIcon">
-              ⚡
-            </div>
-
-            <h3>
-              Super Fast
-            </h3>
-
-            <p>
-              Get results in seconds.
-            </p>
-
+            <div className="roundIcon">⚡</div>
+            <h3>Super Fast</h3>
+            <p>Get results in seconds.</p>
           </div>
 
           <div>
-
-            <div className="roundIcon">
-              🛡️
-            </div>
-
-            <h3>
-              Privacy First
-            </h3>
-
-            <p>
-              Your files stay on your device.
-            </p>
-
+            <div className="roundIcon">🛡️</div>
+            <h3>Privacy First</h3>
+            <p>Your files stay on your device.</p>
           </div>
 
           <div>
-
-            <div className="roundIcon">
-              ₹
-            </div>
-
-            <h3>
-              Always Free
-            </h3>
-
-            <p>
-              No hidden charges.
-            </p>
-
+            <div className="roundIcon">₹</div>
+            <h3>Always Free</h3>
+            <p>No hidden charges.</p>
           </div>
 
           <div>
-
-            <div className="roundIcon">
-              📱
-            </div>
-
-            <h3>
-              All Devices
-            </h3>
-
-            <p>
-              Works on mobile, tablet & desktop.
-            </p>
-
+            <div className="roundIcon">📱</div>
+            <h3>All Devices</h3>
+            <p>Works on mobile, tablet & desktop.</p>
           </div>
 
         </div>
@@ -576,59 +561,29 @@ export default function Home() {
 
         <div>
 
-          <h3>
-            Quick Links
-          </h3>
+          <h3>Quick Links</h3>
 
-          <a href="#home">
-            Home
-          </a>
-
-          <a href="#tools">
-            Tools
-          </a>
-
-          <a href="#about">
-            About
-          </a>
-
-          <a href="#contact">
-            Contact
-          </a>
+          <a href="#home">Home</a>
+          <a href="#tools">Tools</a>
+          <a href="#about">About</a>
+          <a href="#contact">Contact</a>
 
         </div>
 
         <div>
 
-          <h3>
-            Popular Tools
-          </h3>
+          <h3>Popular Tools</h3>
 
-          <a href="#jpg-pdf">
-            JPG to PDF
-          </a>
-
-          <a href="/compressor">
-            Image Compressor
-          </a>
-
-          <a href="/resizer">
-            Image Resizer
-          </a>
-
-          <a href="#tools">
-            GST Calculator
-          </a>
-
-          <a href="#tools">
-            QR Generator
-          </a>
+          <a href="#jpg-pdf">JPG to PDF</a>
+          <a href="/compressor">Image Compressor</a>
+          <a href="/resizer">Image Resizer</a>
+          <a href="#tools">PDF Tools</a>
+          <a href="#tools">GST Calculator</a>
+          <a href="#tools">QR Generator</a>
 
         </div>
 
       </footer>
-
-      {/* COPYRIGHT */}
 
       <div className="copyright">
 
