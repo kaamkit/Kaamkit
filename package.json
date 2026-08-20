@@ -18,6 +18,7 @@
     "pdfjs-dist": "6.2.108",
     "docx": "9.7.1",
     "xlsx": "latest",
-    "mammoth": "latest"
+    "mammoth": "latest",
+    "qrcode": "latest"
   }
 }
