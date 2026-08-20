@@ -4,234 +4,386 @@ import { useState } from "react";
 
 export default function GSTCalculator() {
   const [amount, setAmount] = useState("");
-  const [rate, setRate] = useState("18");
-  const [mode, setMode] = useState("exclusive");
+  const [gstRate, setGstRate] = useState("18");
+  const [mode, setMode] = useState("add");
 
-  const value = parseFloat(amount) || 0;
-  const gstRate = parseFloat(rate) || 0;
+  const amountValue = Number(amount) || 0;
+  const rateValue = Number(gstRate) || 0;
 
   let baseAmount = 0;
   let gstAmount = 0;
   let totalAmount = 0;
 
-  if (mode === "exclusive") {
-    baseAmount = value;
-    gstAmount = (value * gstRate) / 100;
-    totalAmount = value + gstAmount;
+  if (mode === "add") {
+    baseAmount = amountValue;
+    gstAmount = (amountValue * rateValue) / 100;
+    totalAmount = amountValue + gstAmount;
   } else {
-    totalAmount = value;
-    baseAmount = value / (1 + gstRate / 100);
-    gstAmount = value - baseAmount;
+    totalAmount = amountValue;
+    baseAmount = amountValue / (1 + rateValue / 100);
+    gstAmount = amountValue - baseAmount;
   }
 
   const cgst = gstAmount / 2;
   const sgst = gstAmount / 2;
 
+  const money = (value) =>
+    value.toLocaleString("en-IN", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+
+  const resetCalculator = () => {
+    setAmount("");
+    setGstRate("18");
+    setMode("add");
+  };
+
   return (
-    <main style={styles.main}>
-      <div style={styles.container}>
-        <a href="/" style={styles.back}>
-          ← Back to KaamKit
-        </a>
+    <main
+      style={{
+        minHeight: "100vh",
+        background: "#f4f8ff",
+        fontFamily: "Arial, sans-serif",
+        color: "#14213d",
+      }}
+    >
+      <header
+        style={{
+          background: "#fff",
+          borderBottom: "1px solid #e5edf7",
+          padding: "16px 20px",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: "900px",
+            margin: "auto",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <a
+            href="/"
+            style={{
+              textDecoration: "none",
+              color: "#14213d",
+              fontSize: "24px",
+              fontWeight: "800",
+            }}
+          >
+            <span
+              style={{
+                display: "inline-flex",
+                width: "42px",
+                height: "42px",
+                borderRadius: "12px",
+                background: "#1677ff",
+                color: "#fff",
+                alignItems: "center",
+                justifyContent: "center",
+                marginRight: "10px",
+              }}
+            >
+              K
+            </span>
+            Kaam<span style={{ color: "#1677ff" }}>Kit</span>
+          </a>
 
-        <h1 style={styles.title}>GST Calculator</h1>
+          <a
+            href="/"
+            style={{
+              textDecoration: "none",
+              color: "#1677ff",
+              fontWeight: "700",
+            }}
+          >
+            ← Home
+          </a>
+        </div>
+      </header>
 
-        <p style={styles.subtitle}>
-          Calculate GST, CGST, SGST and total amount quickly.
-        </p>
+      <section
+        style={{
+          maxWidth: "850px",
+          margin: "auto",
+          padding: "45px 20px 70px",
+        }}
+      >
+        <div
+          style={{
+            textAlign: "center",
+            marginBottom: "30px",
+          }}
+        >
+          <div
+            style={{
+              width: "75px",
+              height: "75px",
+              margin: "0 auto 15px",
+              borderRadius: "20px",
+              background: "#e7f1ff",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "40px",
+            }}
+          >
+            ₹
+          </div>
 
-        <div style={styles.card}>
-          <label style={styles.label}>Amount (₹)</label>
+          <h1
+            style={{
+              margin: "0 0 10px",
+              fontSize: "38px",
+            }}
+          >
+            GST Calculator
+          </h1>
+
+          <p
+            style={{
+              margin: 0,
+              color: "#718096",
+              fontSize: "17px",
+            }}
+          >
+            Calculate GST, CGST, SGST and final amount instantly.
+          </p>
+        </div>
+
+        <div
+          style={{
+            background: "#fff",
+            borderRadius: "24px",
+            padding: "28px",
+            border: "1px solid #e4ecf7",
+            boxShadow: "0 15px 45px rgba(30,80,140,.10)",
+          }}
+        >
+          <label
+            style={{
+              display: "block",
+              fontWeight: "700",
+              marginBottom: "10px",
+            }}
+          >
+            Calculation Type
+          </label>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: "12px",
+              marginBottom: "25px",
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => setMode("add")}
+              style={{
+                padding: "15px",
+                borderRadius: "12px",
+                border:
+                  mode === "add"
+                    ? "2px solid #1677ff"
+                    : "1px solid #cbd5e1",
+                background:
+                  mode === "add" ? "#e8f2ff" : "#fff",
+                fontWeight: "700",
+                cursor: "pointer",
+              }}
+            >
+              Add GST
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setMode("remove")}
+              style={{
+                padding: "15px",
+                borderRadius: "12px",
+                border:
+                  mode === "remove"
+                    ? "2px solid #1677ff"
+                    : "1px solid #cbd5e1",
+                background:
+                  mode === "remove" ? "#e8f2ff" : "#fff",
+                fontWeight: "700",
+                cursor: "pointer",
+              }}
+            >
+              Remove GST
+            </button>
+          </div>
+
+          <label
+            style={{
+              display: "block",
+              fontWeight: "700",
+              marginBottom: "8px",
+            }}
+          >
+            {mode === "add"
+              ? "Amount Before GST"
+              : "Amount Including GST"}
+          </label>
 
           <input
             type="number"
+            min="0"
+            step="0.01"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             placeholder="Enter amount"
-            style={styles.input}
+            style={{
+              width: "100%",
+              boxSizing: "border-box",
+              padding: "15px",
+              borderRadius: "12px",
+              border: "1px solid #cbd5e1",
+              fontSize: "17px",
+              marginBottom: "20px",
+            }}
           />
 
-          <label style={styles.label}>GST Rate</label>
+          <label
+            style={{
+              display: "block",
+              fontWeight: "700",
+              marginBottom: "8px",
+            }}
+          >
+            GST Rate
+          </label>
 
           <select
-            value={rate}
-            onChange={(e) => setRate(e.target.value)}
-            style={styles.input}
+            value={gstRate}
+            onChange={(e) => setGstRate(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "15px",
+              borderRadius: "12px",
+              border: "1px solid #cbd5e1",
+              fontSize: "17px",
+              marginBottom: "25px",
+              background: "#fff",
+            }}
           >
+            <option value="0">0%</option>
             <option value="5">5%</option>
             <option value="12">12%</option>
             <option value="18">18%</option>
             <option value="28">28%</option>
           </select>
 
-          <label style={styles.label}>Calculation Type</label>
-
-          <div style={styles.modeBox}>
-            <button
-              onClick={() => setMode("exclusive")}
-              style={
-                mode === "exclusive"
-                  ? styles.activeMode
-                  : styles.modeButton
-              }
+          <div
+            style={{
+              background: "#f5f9ff",
+              borderRadius: "18px",
+              padding: "22px",
+              border: "1px solid #dce9f8",
+            }}
+          >
+            <h2
+              style={{
+                marginTop: 0,
+                marginBottom: "18px",
+                fontSize: "21px",
+              }}
             >
-              GST Extra
-            </button>
+              Calculation Result
+            </h2>
 
-            <button
-              onClick={() => setMode("inclusive")}
-              style={
-                mode === "inclusive"
-                  ? styles.activeMode
-                  : styles.modeButton
-              }
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                padding: "12px 0",
+                borderBottom: "1px solid #e2e8f0",
+              }}
             >
-              GST Included
-            </button>
-          </div>
-
-          <div style={styles.result}>
-            <div style={styles.row}>
               <span>Base Amount</span>
-              <strong>₹{baseAmount.toFixed(2)}</strong>
+              <strong>₹{money(baseAmount)}</strong>
             </div>
 
-            <div style={styles.row}>
-              <span>GST ({gstRate}%)</span>
-              <strong>₹{gstAmount.toFixed(2)}</strong>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                padding: "12px 0",
+                borderBottom: "1px solid #e2e8f0",
+              }}
+            >
+              <span>GST ({rateValue}%)</span>
+              <strong>₹{money(gstAmount)}</strong>
             </div>
 
-            <div style={styles.row}>
-              <span>CGST</span>
-              <strong>₹{cgst.toFixed(2)}</strong>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                padding: "12px 0",
+                borderBottom: "1px solid #e2e8f0",
+              }}
+            >
+              <span>CGST ({rateValue / 2}%)</span>
+              <strong>₹{money(cgst)}</strong>
             </div>
 
-            <div style={styles.row}>
-              <span>SGST</span>
-              <strong>₹{sgst.toFixed(2)}</strong>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                padding: "12px 0",
+                borderBottom: "1px solid #e2e8f0",
+              }}
+            >
+              <span>SGST ({rateValue / 2}%)</span>
+              <strong>₹{money(sgst)}</strong>
             </div>
 
-            <div style={styles.totalRow}>
-              <span>Total Amount</span>
-              <strong>₹{totalAmount.toFixed(2)}</strong>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                marginTop: "18px",
+                fontSize: "21px",
+                fontWeight: "800",
+                color: "#1677ff",
+              }}
+            >
+              <span>
+                {mode === "add"
+                  ? "Final Amount"
+                  : "Original Amount"}
+              </span>
+
+              <span>₹{money(totalAmount)}</span>
             </div>
           </div>
-        </div>
 
-        <p style={styles.footer}>
-          KaamKit — Free online tools for everyday work.
-        </p>
-      </div>
+          <button
+            type="button"
+            onClick={resetCalculator}
+            style={{
+              width: "100%",
+              marginTop: "22px",
+              padding: "15px",
+              borderRadius: "12px",
+              border: "1px solid #cbd5e1",
+              background: "#fff",
+              fontSize: "16px",
+              fontWeight: "700",
+              cursor: "pointer",
+            }}
+          >
+            Reset Calculator
+          </button>
+        </div>
+      </section>
     </main>
   );
 }
-
-const styles = {
-  main: {
-    minHeight: "100vh",
-    background: "#f7f8fa",
-    padding: "30px 20px",
-    fontFamily: "Arial, sans-serif",
-    color: "#111827",
-  },
-
-  container: {
-    maxWidth: "600px",
-    margin: "0 auto",
-  },
-
-  back: {
-    color: "#111827",
-    textDecoration: "none",
-    fontWeight: "600",
-  },
-
-  title: {
-    fontSize: "36px",
-    margin: "30px 0 10px",
-  },
-
-  subtitle: {
-    color: "#6b7280",
-    fontSize: "17px",
-    marginBottom: "30px",
-  },
-
-  card: {
-    background: "#ffffff",
-    padding: "25px",
-    borderRadius: "18px",
-    boxShadow: "0 5px 25px rgba(0,0,0,0.08)",
-    border: "1px solid #e5e7eb",
-  },
-
-  label: {
-    display: "block",
-    fontWeight: "600",
-    marginBottom: "8px",
-    marginTop: "18px",
-  },
-
-  input: {
-    width: "100%",
-    boxSizing: "border-box",
-    padding: "14px",
-    borderRadius: "10px",
-    border: "1px solid #d1d5db",
-    fontSize: "16px",
-    background: "#ffffff",
-  },
-
-  modeBox: {
-    display: "flex",
-    gap: "10px",
-    marginTop: "10px",
-  },
-
-  modeButton: {
-    flex: 1,
-    padding: "13px 8px",
-    borderRadius: "10px",
-    border: "1px solid #d1d5db",
-    background: "#ffffff",
-    fontWeight: "600",
-  },
-
-  activeMode: {
-    flex: 1,
-    padding: "13px 8px",
-    borderRadius: "10px",
-    border: "none",
-    background: "#111827",
-    color: "#ffffff",
-    fontWeight: "600",
-  },
-
-  result: {
-    marginTop: "25px",
-    padding: "18px",
-    background: "#f3f4f6",
-    borderRadius: "12px",
-  },
-
-  row: {
-    display: "flex",
-    justifyContent: "space-between",
-    padding: "10px 0",
-    borderBottom: "1px solid #e5e7eb",
-  },
-
-  totalRow: {
-    display: "flex",
-    justifyContent: "space-between",
-    padding: "16px 0 5px",
-    fontSize: "20px",
-  },
-
-  footer: {
-    textAlign: "center",
-    color: "#9ca3af",
-    marginTop: "35px",
-    fontSize: "14px",
-  },
-};
