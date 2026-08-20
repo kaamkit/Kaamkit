@@ -1,130 +1,125 @@
 "use client";
 
 import { useState } from "react";
+import { jsPDF } from "jspdf";
 
-export default function Resizer() {
-  const [file, setFile] = useState(null);
+const tools = [
+  {
+    name: "JPG to PDF",
+    icon: "📄",
+    description: "Convert your images to PDF easily.",
+    href: "#jpg-pdf",
+    button: "Use Tool →",
+  },
+  {
+    name: "Image Compressor",
+    icon: "🗜️",
+    description: "Reduce image size quickly and easily.",
+    href: "/compressor",
+    button: "Use Tool →",
+  },
+  {
+    name: "Image Resizer",
+    icon: "↗️",
+    description: "Resize your images to any dimension.",
+    href: "/resizer",
+    button: "Use Tool →",
+  },
+  {
+    name: "GST Calculator",
+    icon: "₹",
+    description: "Calculate GST, tax and final amount.",
+    href: "#tools",
+    button: "Coming Soon",
+  },
+  {
+    name: "QR Generator",
+    icon: "▦",
+    description: "Create QR codes for text and links.",
+    href: "#tools",
+    button: "Coming Soon",
+  },
+];
+
+export default function Home() {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
   const [preview, setPreview] = useState(null);
-  const [width, setWidth] = useState("");
-  const [height, setHeight] = useState("");
-  const [lockRatio, setLockRatio] = useState(true);
-  const [originalWidth, setOriginalWidth] = useState(0);
-  const [originalHeight, setOriginalHeight] = useState(0);
+  const [loading, setLoading] = useState(false);
 
-  const handleFile = (e) => {
-    const selected = e.target.files?.[0];
+  const handleFile = (event) => {
+    const file = event.target.files?.[0];
 
-    if (!selected) return;
+    if (!file) return;
 
-    if (!selected.type.startsWith("image/")) {
-      alert("Please select an image.");
+    if (!file.type.startsWith("image/")) {
+      alert("Please select an image file.");
       return;
     }
 
-    setFile(selected);
+    setSelectedFile(file);
 
     const reader = new FileReader();
 
     reader.onload = () => {
-      const image = new Image();
-
-      image.onload = () => {
-        setOriginalWidth(image.width);
-        setOriginalHeight(image.height);
-        setWidth(image.width);
-        setHeight(image.height);
-        setPreview(reader.result);
-      };
-
-      image.src = reader.result;
+      setPreview(reader.result);
     };
 
-    reader.readAsDataURL(selected);
+    reader.readAsDataURL(file);
   };
 
-  const changeWidth = (value) => {
-    setWidth(value);
-
-    if (lockRatio && originalWidth && originalHeight && value) {
-      setHeight(
-        Math.round(
-          (Number(value) / originalWidth) * originalHeight
-        )
-      );
-    }
-  };
-
-  const changeHeight = (value) => {
-    setHeight(value);
-
-    if (lockRatio && originalWidth && originalHeight && value) {
-      setWidth(
-        Math.round(
-          (Number(value) / originalHeight) * originalWidth
-        )
-      );
-    }
-  };
-
-  const resizeImage = () => {
-    if (!file || !preview) {
+  const convertToPDF = () => {
+    if (!selectedFile || !preview) {
       alert("Please select an image first.");
       return;
     }
 
-    const newWidth = Number(width);
-    const newHeight = Number(height);
-
-    if (!newWidth || !newHeight || newWidth <= 0 || newHeight <= 0) {
-      alert("Please enter valid width and height.");
-      return;
-    }
+    setLoading(true);
 
     const image = new Image();
 
     image.onload = () => {
-      const canvas = document.createElement("canvas");
+      try {
+        const orientation =
+          image.width > image.height
+            ? "landscape"
+            : "portrait";
 
-      canvas.width = newWidth;
-      canvas.height = newHeight;
+        const pdf = new jsPDF({
+          orientation,
+          unit: "px",
+          format: [image.width, image.height],
+        });
 
-      const ctx = canvas.getContext("2d");
+        const format =
+          selectedFile.type === "image/png"
+            ? "PNG"
+            : "JPEG";
 
-      ctx.drawImage(
-        image,
-        0,
-        0,
-        newWidth,
-        newHeight
-      );
+        pdf.addImage(
+          image,
+          format,
+          0,
+          0,
+          image.width,
+          image.height
+        );
 
-      canvas.toBlob(
-        (blob) => {
-          if (!blob) {
-            alert("Image resizing failed.");
-            return;
-          }
+        const fileName =
+          selectedFile.name.replace(/\.[^/.]+$/, "") +
+          ".pdf";
 
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement("a");
-
-          link.href = url;
-          link.download =
-            file.name.replace(/\.[^/.]+$/, "") +
-            `-${newWidth}x${newHeight}.jpg`;
-
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-
-          URL.revokeObjectURL(url);
-        },
-        "image/jpeg",
-        0.92
-      );
+        pdf.save(fileName);
+      } catch (error) {
+        console.error(error);
+        alert("PDF creation failed. Please try another image.");
+      } finally {
+        setLoading(false);
+      }
     };
 
     image.onerror = () => {
+      setLoading(false);
       alert("Unable to process this image.");
     };
 
@@ -132,51 +127,160 @@ export default function Resizer() {
   };
 
   return (
-    <main style={styles.page}>
-      <nav style={styles.nav}>
-        <a href="/" style={styles.logo}>
-          <div style={styles.logoIcon}>K</div>
+    <main className="site">
+
+      {/* NAVBAR */}
+
+      <nav className="navbar">
+
+        <a href="#home" className="logo">
+          <div className="logoIcon">K</div>
+
           <span>
-            Kaam<span style={{ color: "#0878ff" }}>Kit</span>
+            Kaam<span>Kit</span>
           </span>
         </a>
 
-        <a href="/" style={styles.home}>
-          ← Back to KaamKit
-        </a>
-      </nav>
+        <button
+          className="menuBtn"
+          onClick={() => setMenuOpen(!menuOpen)}
+          aria-label="Menu"
+        >
+          ☰
+        </button>
 
-      <section style={styles.hero}>
-        <div style={styles.badge}>
-          ⚡ Free • Fast • Secure
+        <div
+          className={`navLinks ${
+            menuOpen ? "open" : ""
+          }`}
+        >
+          <a href="#home">Home</a>
+          <a href="#tools">Tools</a>
+          <a href="#about">About</a>
+          <a href="#contact">Contact</a>
         </div>
 
-        <h1 style={styles.title}>
-          Image{" "}
-          <span style={{ color: "#0878ff" }}>
-            Resizer
-          </span>
-        </h1>
+      </nav>
 
-        <p style={styles.subtitle}>
-          Resize your images to any width and height
-          directly in your browser.
-        </p>
+      {/* HERO */}
 
-        <div style={styles.card}>
+      <section className="hero" id="home">
+
+        <div className="heroContent">
+
+          <div className="badge">
+            ⚡ Free • Fast • Secure
+          </div>
+
+          <h1>
+            Your Everyday
+            <br />
+            <span>Work Toolkit</span>
+          </h1>
+
+          <p>
+            Simple, powerful and free online tools
+            to make your daily work easier.
+          </p>
+
+          <div className="searchBox">
+
+            <span>⌕</span>
+
+            <input
+              type="text"
+              placeholder="Search tools... JPG to PDF, QR, GST"
+            />
+
+            <button type="button">
+              Search
+            </button>
+
+          </div>
+
+          <div className="trust">
+            <span>✓ 100% Free</span>
+            <span>✓ No Sign Up</span>
+            <span>✓ Works on All Devices</span>
+          </div>
+
+        </div>
+
+        <div className="heroVisual">
+
+          <div className="floatingCard card1">
+            📄 PDF
+          </div>
+
+          <div className="floatingCard card2">
+            🖼️ Image
+          </div>
+
+          <div className="floatingCard card3">
+            ₹ GST
+          </div>
+
+          <div className="laptop">
+
+            <div className="screen">
+
+              <div className="bigK">
+                K
+              </div>
+
+              <strong>
+                KaamKit
+              </strong>
+
+            </div>
+
+            <div className="keyboard"></div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+      {/* JPG TO PDF */}
+
+      <section
+        className="converterSection"
+        id="jpg-pdf"
+      >
+
+        <div className="sectionTitle">
+
+          <h2>
+            JPG to PDF Converter
+          </h2>
+
+          <p>
+            Convert your JPG, JPEG or PNG image
+            into a PDF instantly.
+          </p>
+
+        </div>
+
+        <div className="converterCard">
+
           {!preview ? (
-            <label style={styles.uploadBox}>
-              <div style={styles.uploadIcon}>↗️</div>
 
-              <h2 style={styles.uploadTitle}>
-                Upload your image
-              </h2>
+            <label className="uploadBox">
 
-              <p style={styles.uploadText}>
-                JPG, JPEG or PNG supported
+              <div className="uploadIcon">
+                📤
+              </div>
+
+              <h3>
+                Upload an Image
+              </h3>
+
+              <p>
+                JPG, JPEG or PNG
               </p>
 
-              <span style={styles.button}>
+              <span className="uploadButton">
                 Choose Image
               </span>
 
@@ -186,65 +290,27 @@ export default function Resizer() {
                 onChange={handleFile}
                 hidden
               />
+
             </label>
+
           ) : (
-            <>
+
+            <div className="previewArea">
+
               <img
                 src={preview}
-                alt="Preview"
-                style={styles.preview}
+                alt="Selected image"
+                className="imagePreview"
               />
 
-              <div style={styles.original}>
-                Original size:{" "}
-                <strong>
-                  {originalWidth} × {originalHeight}px
-                </strong>
+              <div className="fileName">
+                {selectedFile?.name}
               </div>
 
-              <div style={styles.inputs}>
-                <div style={styles.inputGroup}>
-                  <label>Width (px)</label>
+              <div className="converterActions">
 
-                  <input
-                    type="number"
-                    value={width}
-                    onChange={(e) =>
-                      changeWidth(e.target.value)
-                    }
-                    style={styles.input}
-                  />
-                </div>
+                <label className="secondaryButton">
 
-                <div style={styles.multiply}>×</div>
-
-                <div style={styles.inputGroup}>
-                  <label>Height (px)</label>
-
-                  <input
-                    type="number"
-                    value={height}
-                    onChange={(e) =>
-                      changeHeight(e.target.value)
-                    }
-                    style={styles.input}
-                  />
-                </div>
-              </div>
-
-              <label style={styles.checkbox}>
-                <input
-                  type="checkbox"
-                  checked={lockRatio}
-                  onChange={(e) =>
-                    setLockRatio(e.target.checked)
-                  }
-                />
-                Lock aspect ratio
-              </label>
-
-              <div style={styles.actions}>
-                <label style={styles.secondaryButton}>
                   Change Image
 
                   <input
@@ -253,261 +319,329 @@ export default function Resizer() {
                     onChange={handleFile}
                     hidden
                   />
+
                 </label>
 
                 <button
-                  onClick={resizeImage}
-                  style={styles.primaryButton}
+                  className="primaryButton"
+                  onClick={convertToPDF}
+                  disabled={loading}
                 >
-                  Resize & Download →
+                  {loading
+                    ? "Creating PDF..."
+                    : "Download PDF →"}
                 </button>
+
               </div>
-            </>
+
+            </div>
+
           )}
+
         </div>
 
-        <div style={styles.features}>
-          <div>🔒 Files stay on your device</div>
-          <div>⚡ Fast processing</div>
-          <div>💯 Free to use</div>
-        </div>
       </section>
 
-      <footer style={styles.footer}>
-        <div style={styles.logo}>
-          <div style={styles.logoIcon}>K</div>
+      {/* TOOLS */}
 
-          <span>
-            Kaam<span style={{ color: "#0878ff" }}>
-              Kit
-            </span>
-          </span>
+      <section
+        className="toolsSection"
+        id="tools"
+      >
+
+        <div className="sectionTitle">
+
+          <h2>
+            Our Tools
+          </h2>
+
+          <p>
+            Choose a tool below and get your
+            work done in seconds.
+          </p>
+
         </div>
 
-        <p>
-          Simple Tools. Better Work. • Made with ❤️ in India 🇮🇳
-        </p>
+        <div className="toolGrid">
+
+          {tools.map((tool) => (
+
+            <div
+              className="toolCard"
+              key={tool.name}
+            >
+
+              <div className="toolIcon">
+                {tool.icon}
+              </div>
+
+              <h3>
+                {tool.name}
+              </h3>
+
+              <p>
+                {tool.description}
+              </p>
+
+              {tool.button === "Coming Soon" ? (
+
+                <span className="toolButton comingSoon">
+                  Coming Soon
+                </span>
+
+              ) : (
+
+                <a
+                  href={tool.href}
+                  className="toolButton"
+                >
+                  {tool.button}
+                </a>
+
+              )}
+
+            </div>
+
+          ))}
+
+        </div>
+
+      </section>
+
+      {/* FEATURES */}
+
+      <section className="features">
+
+        <div>
+          <strong>100%</strong>
+          <span>Free to Use</span>
+        </div>
+
+        <div>
+          <strong>⚡ Fast</strong>
+          <span>Processing</span>
+        </div>
+
+        <div>
+          <strong>🛡️ Secure</strong>
+          <span>Files stay on your device</span>
+        </div>
+
+        <div>
+          <strong>📱 All Devices</strong>
+          <span>Mobile & Desktop</span>
+        </div>
+
+      </section>
+
+      {/* WHY K AAMKIT */}
+
+      <section
+        className="why"
+        id="about"
+      >
+
+        <div className="sectionTitle">
+
+          <h2>
+            Why Choose KaamKit?
+          </h2>
+
+          <p>
+            Because your time and data matter.
+          </p>
+
+        </div>
+
+        <div className="whyGrid">
+
+          <div>
+
+            <div className="roundIcon">
+              ⚡
+            </div>
+
+            <h3>
+              Super Fast
+            </h3>
+
+            <p>
+              Get results in seconds.
+            </p>
+
+          </div>
+
+          <div>
+
+            <div className="roundIcon">
+              🛡️
+            </div>
+
+            <h3>
+              Privacy First
+            </h3>
+
+            <p>
+              Your files stay on your device.
+            </p>
+
+          </div>
+
+          <div>
+
+            <div className="roundIcon">
+              ₹
+            </div>
+
+            <h3>
+              Always Free
+            </h3>
+
+            <p>
+              No hidden charges.
+            </p>
+
+          </div>
+
+          <div>
+
+            <div className="roundIcon">
+              📱
+            </div>
+
+            <h3>
+              All Devices
+            </h3>
+
+            <p>
+              Works on mobile, tablet & desktop.
+            </p>
+
+          </div>
+
+        </div>
+
+      </section>
+
+      {/* CTA */}
+
+      <section className="cta">
+
+        <div>
+
+          <h2>
+            Ready to Make Your Work Easier?
+          </h2>
+
+          <p>
+            Try our free tools and save your time.
+          </p>
+
+        </div>
+
+        <a href="#tools">
+          Explore Tools →
+        </a>
+
+      </section>
+
+      {/* FOOTER */}
+
+      <footer id="contact">
+
+        <div className="footerBrand">
+
+          <div className="logo">
+
+            <div className="logoIcon">
+              K
+            </div>
+
+            <span>
+              Kaam<span>Kit</span>
+            </span>
+
+          </div>
+
+          <p>
+            Simple Tools. Better Work.
+          </p>
+
+          <p>
+            Free online tools for students,
+            professionals and everyone.
+          </p>
+
+        </div>
+
+        <div>
+
+          <h3>
+            Quick Links
+          </h3>
+
+          <a href="#home">
+            Home
+          </a>
+
+          <a href="#tools">
+            Tools
+          </a>
+
+          <a href="#about">
+            About
+          </a>
+
+          <a href="#contact">
+            Contact
+          </a>
+
+        </div>
+
+        <div>
+
+          <h3>
+            Popular Tools
+          </h3>
+
+          <a href="#jpg-pdf">
+            JPG to PDF
+          </a>
+
+          <a href="/compressor">
+            Image Compressor
+          </a>
+
+          <a href="/resizer">
+            Image Resizer
+          </a>
+
+          <a href="#tools">
+            GST Calculator
+          </a>
+
+          <a href="#tools">
+            QR Generator
+          </a>
+
+        </div>
+
       </footer>
+
+      {/* COPYRIGHT */}
+
+      <div className="copyright">
+
+        <span>
+          © 2026 KaamKit. All rights reserved.
+        </span>
+
+        <span>
+          Made with ❤️ in India 🇮🇳
+        </span>
+
+      </div>
+
     </main>
   );
 }
-
-const styles = {
-  page: {
-    minHeight: "100vh",
-    background:
-      "linear-gradient(135deg,#eef8ff,#ffffff,#eaf4ff)",
-    color: "#10213f",
-    fontFamily: "Arial, Helvetica, sans-serif",
-  },
-
-  nav: {
-    minHeight: "72px",
-    padding: "0 7%",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    background: "rgba(255,255,255,.96)",
-    borderBottom: "1px solid #e5edf7",
-  },
-
-  logo: {
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-    fontSize: "27px",
-    fontWeight: "800",
-    color: "#12213f",
-    textDecoration: "none",
-  },
-
-  logoIcon: {
-    width: "42px",
-    height: "42px",
-    borderRadius: "12px",
-    display: "grid",
-    placeItems: "center",
-    color: "white",
-    fontSize: "27px",
-    fontWeight: "900",
-    background:
-      "linear-gradient(135deg,#0878ff,#1647d8)",
-  },
-
-  home: {
-    color: "#0878ff",
-    fontWeight: "700",
-    textDecoration: "none",
-  },
-
-  hero: {
-    maxWidth: "900px",
-    margin: "0 auto",
-    padding: "70px 20px 90px",
-    textAlign: "center",
-  },
-
-  badge: {
-    display: "inline-block",
-    padding: "9px 18px",
-    borderRadius: "30px",
-    background: "#0878ff",
-    color: "white",
-    fontWeight: "700",
-  },
-
-  title: {
-    fontSize: "52px",
-    margin: "22px 0 12px",
-  },
-
-  subtitle: {
-    color: "#64758c",
-    fontSize: "18px",
-    lineHeight: "1.6",
-    maxWidth: "650px",
-    margin: "0 auto 35px",
-  },
-
-  card: {
-    background: "white",
-    border: "1px solid #dfeaf6",
-    borderRadius: "25px",
-    padding: "35px",
-    boxShadow: "0 20px 50px rgba(30,80,130,.12)",
-  },
-
-  uploadBox: {
-    display: "block",
-    padding: "55px 20px",
-    border: "2px dashed #b9d7f5",
-    borderRadius: "20px",
-    cursor: "pointer",
-    background: "#f8fcff",
-  },
-
-  uploadIcon: {
-    fontSize: "55px",
-    marginBottom: "15px",
-  },
-
-  uploadTitle: {
-    margin: "0 0 8px",
-    fontSize: "24px",
-  },
-
-  uploadText: {
-    color: "#718096",
-    marginBottom: "25px",
-  },
-
-  button: {
-    display: "inline-block",
-    padding: "13px 25px",
-    borderRadius: "28px",
-    background: "#0878ff",
-    color: "white",
-    fontWeight: "700",
-  },
-
-  preview: {
-    maxWidth: "100%",
-    maxHeight: "350px",
-    borderRadius: "15px",
-    objectFit: "contain",
-    marginBottom: "15px",
-  },
-
-  original: {
-    color: "#64758c",
-    marginBottom: "25px",
-  },
-
-  inputs: {
-    display: "flex",
-    alignItems: "flex-end",
-    justifyContent: "center",
-    gap: "15px",
-    marginBottom: "18px",
-    flexWrap: "wrap",
-  },
-
-  inputGroup: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "7px",
-    textAlign: "left",
-  },
-
-  input: {
-    width: "180px",
-    padding: "12px",
-    border: "1px solid #cbd9e8",
-    borderRadius: "10px",
-    fontSize: "16px",
-    outline: "none",
-  },
-
-  multiply: {
-    fontSize: "25px",
-    paddingBottom: "8px",
-    color: "#718096",
-  },
-
-  checkbox: {
-    display: "flex",
-    justifyContent: "center",
-    gap: "8px",
-    marginBottom: "25px",
-    color: "#52627b",
-  },
-
-  actions: {
-    display: "flex",
-    justifyContent: "center",
-    gap: "12px",
-    flexWrap: "wrap",
-  },
-
-  primaryButton: {
-    border: "none",
-    borderRadius: "28px",
-    padding: "14px 25px",
-    background: "#0878ff",
-    color: "white",
-    fontWeight: "700",
-    fontSize: "15px",
-    cursor: "pointer",
-  },
-
-  secondaryButton: {
-    border: "1px solid #cbd9e8",
-    borderRadius: "28px",
-    padding: "13px 22px",
-    background: "white",
-    color: "#30445f",
-    fontWeight: "700",
-    cursor: "pointer",
-  },
-
-  features: {
-    display: "flex",
-    justifyContent: "center",
-    gap: "25px",
-    flexWrap: "wrap",
-    marginTop: "30px",
-    color: "#52627b",
-    fontWeight: "600",
-  },
-
-  footer: {
-    padding: "30px 7%",
-    background: "#0d1c35",
-    color: "#a9b6c9",
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: "20px",
-    flexWrap: "wrap",
-  },
-};
