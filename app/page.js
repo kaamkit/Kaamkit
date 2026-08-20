@@ -36,8 +36,8 @@ const tools = [
     name: "PDF to Excel",
     icon: "📊",
     description: "Convert PDF tables into Excel files.",
-    href: "#tools",
-    available: false,
+    href: "/pdf-to-excel",
+    available: true,
   },
   {
     name: "Word to Excel",
@@ -124,25 +124,21 @@ export default function Home() {
           format: [image.width, image.height],
         });
 
-        const imageFormat =
-          selectedFile.type === "image/png"
-            ? "PNG"
-            : "JPEG";
-
         pdf.addImage(
           image,
-          imageFormat,
+          selectedFile.type === "image/png"
+            ? "PNG"
+            : "JPEG",
           0,
           0,
           image.width,
           image.height
         );
 
-        const fileName =
+        pdf.save(
           selectedFile.name.replace(/\.[^/.]+$/, "") +
-          ".pdf";
-
-        pdf.save(fileName);
+            ".pdf"
+        );
       } catch (error) {
         console.error(error);
         alert("PDF creation failed.");
@@ -161,16 +157,11 @@ export default function Home() {
 
   const openTool = (href) => {
     if (href.startsWith("#")) {
-      const target = document.getElementById(
-        href.substring(1)
-      );
-
-      if (target) {
-        target.scrollIntoView({
+      document
+        .getElementById(href.substring(1))
+        ?.scrollIntoView({
           behavior: "smooth",
-          block: "start",
         });
-      }
 
       return;
     }
@@ -181,12 +172,10 @@ export default function Home() {
   return (
     <main className="site">
 
-      {/* NAVBAR */}
       <nav className="navbar">
 
         <a href="/" className="logo">
           <div className="logoIcon">K</div>
-
           <span>
             Kaam<span>Kit</span>
           </span>
@@ -195,10 +184,7 @@ export default function Home() {
         <button
           type="button"
           className="menuBtn"
-          onClick={() =>
-            setMenuOpen((current) => !current)
-          }
-          aria-label="Menu"
+          onClick={() => setMenuOpen(!menuOpen)}
         >
           ☰
         </button>
@@ -216,7 +202,6 @@ export default function Home() {
 
       </nav>
 
-      {/* HERO */}
       <section className="hero" id="home">
 
         <div className="heroContent">
@@ -237,7 +222,6 @@ export default function Home() {
           </p>
 
           <div className="searchBox">
-
             <span>⌕</span>
 
             <input
@@ -248,7 +232,6 @@ export default function Home() {
             <button type="button">
               Search
             </button>
-
           </div>
 
           <div className="trust">
@@ -274,35 +257,30 @@ export default function Home() {
           </div>
 
           <div className="laptop">
-
             <div className="screen">
               <div className="bigK">K</div>
               <strong>KaamKit</strong>
             </div>
 
             <div className="keyboard"></div>
-
           </div>
 
         </div>
 
       </section>
 
-      {/* JPG TO PDF */}
       <section
         className="converterSection"
         id="jpg-pdf"
       >
 
         <div className="sectionTitle">
-
           <h2>JPG to PDF Converter</h2>
 
           <p>
             Convert your JPG, JPEG or PNG image
             into a PDF instantly.
           </p>
-
         </div>
 
         <div className="converterCard">
@@ -349,7 +327,6 @@ export default function Home() {
               <div className="converterActions">
 
                 <label className="secondaryButton">
-
                   Change Image
 
                   <input
@@ -358,7 +335,6 @@ export default function Home() {
                     onChange={handleFile}
                     hidden
                   />
-
                 </label>
 
                 <button
@@ -382,7 +358,6 @@ export default function Home() {
 
       </section>
 
-      {/* TOOLS */}
       <section
         className="toolsSection"
         id="tools"
@@ -444,7 +419,6 @@ export default function Home() {
 
       </section>
 
-      {/* FEATURES */}
       <section className="features">
 
         <div>
@@ -469,20 +443,17 @@ export default function Home() {
 
       </section>
 
-      {/* ABOUT */}
       <section
         className="why"
         id="about"
       >
 
         <div className="sectionTitle">
-
           <h2>Why Choose KaamKit?</h2>
 
           <p>
             Simple tools for everyday work.
           </p>
-
         </div>
 
         <div className="whyGrid">
@@ -517,11 +488,9 @@ export default function Home() {
 
       </section>
 
-      {/* CTA */}
       <section className="cta">
 
         <div>
-
           <h2>
             Ready to Make Your Work Easier?
           </h2>
@@ -529,7 +498,6 @@ export default function Home() {
           <p>
             Try KaamKit free tools today.
           </p>
-
         </div>
 
         <button
@@ -541,21 +509,16 @@ export default function Home() {
 
       </section>
 
-      {/* FOOTER */}
       <footer id="contact">
 
         <div className="footerBrand">
 
           <a href="/" className="logo">
-
-            <div className="logoIcon">
-              K
-            </div>
+            <div className="logoIcon">K</div>
 
             <span>
               Kaam<span>Kit</span>
             </span>
-
           </a>
 
           <p>
@@ -590,6 +553,7 @@ export default function Home() {
           <a href="/gst-calculator">GST Calculator</a>
           <a href="/qr-generator">QR Generator</a>
           <a href="/pdf-to-word">PDF to Word</a>
+          <a href="/pdf-to-excel">PDF to Excel</a>
 
         </div>
 
@@ -598,7 +562,8 @@ export default function Home() {
       <div className="copyright">
 
         <span>
-          © 2026 KaamKit. All rights reserved.
+          © {new Date().getFullYear()} KaamKit.
+          All rights reserved.
         </span>
 
         <span>
