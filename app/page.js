@@ -72,7 +72,7 @@ const tools = [
     icon: "📈",
     description: "Convert Excel spreadsheets into PDF files.",
     href: "#tools",
-    active: false,
+    active: true,
   },
 ];
 
