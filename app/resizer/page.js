@@ -124,14 +124,14 @@ export default function Home() {
           format: [image.width, image.height],
         });
 
-        const format =
+        const imageFormat =
           selectedFile.type === "image/png"
             ? "PNG"
             : "JPEG";
 
         pdf.addImage(
           image,
-          format,
+          imageFormat,
           0,
           0,
           image.width,
@@ -145,7 +145,7 @@ export default function Home() {
         pdf.save(fileName);
       } catch (error) {
         console.error(error);
-        alert("PDF creation failed.");
+        alert("PDF creation failed. Please try another image.");
       } finally {
         setLoading(false);
       }
@@ -177,6 +177,7 @@ export default function Home() {
         <button
           className="menuBtn"
           onClick={() => setMenuOpen(!menuOpen)}
+          aria-label="Menu"
         >
           ☰
         </button>
@@ -221,7 +222,7 @@ export default function Home() {
 
             <input
               type="text"
-              placeholder="Search tools... JPG to PDF, QR, GST"
+              placeholder="Search tools..."
             />
 
             <button type="button">
@@ -408,7 +409,7 @@ export default function Home() {
                 {tool.description}
               </p>
 
-              {tool.active ? (
+              {tool.active === true ? (
 
                 <a
                   href={tool.href}
@@ -561,7 +562,9 @@ export default function Home() {
 
         <div>
 
-          <h3>Quick Links</h3>
+          <h3>
+            Quick Links
+          </h3>
 
           <a href="#home">Home</a>
           <a href="#tools">Tools</a>
@@ -572,7 +575,9 @@ export default function Home() {
 
         <div>
 
-          <h3>Popular Tools</h3>
+          <h3>
+            Popular Tools
+          </h3>
 
           <a href="#jpg-pdf">JPG to PDF</a>
           <a href="/compressor">Image Compressor</a>
@@ -584,6 +589,8 @@ export default function Home() {
         </div>
 
       </footer>
+
+      {/* COPYRIGHT */}
 
       <div className="copyright">
 
