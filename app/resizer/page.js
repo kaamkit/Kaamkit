@@ -45,34 +45,24 @@ export default function Resizer() {
   const changeWidth = (value) => {
     setWidth(value);
 
-    if (
-      lockRatio &&
-      originalWidth &&
-      originalHeight &&
-      value
-    ) {
-      const newHeight = Math.round(
-        (Number(value) / originalWidth) * originalHeight
+    if (lockRatio && originalWidth && originalHeight && value) {
+      setHeight(
+        Math.round(
+          (Number(value) / originalWidth) * originalHeight
+        )
       );
-
-      setHeight(newHeight);
     }
   };
 
   const changeHeight = (value) => {
     setHeight(value);
 
-    if (
-      lockRatio &&
-      originalWidth &&
-      originalHeight &&
-      value
-    ) {
-      const newWidth = Math.round(
-        (Number(value) / originalHeight) * originalWidth
+    if (lockRatio && originalWidth && originalHeight && value) {
+      setWidth(
+        Math.round(
+          (Number(value) / originalHeight) * originalWidth
+        )
       );
-
-      setWidth(newWidth);
     }
   };
 
@@ -85,12 +75,7 @@ export default function Resizer() {
     const newWidth = Number(width);
     const newHeight = Number(height);
 
-    if (
-      !newWidth ||
-      !newHeight ||
-      newWidth <= 0 ||
-      newHeight <= 0
-    ) {
+    if (!newWidth || !newHeight || newWidth <= 0 || newHeight <= 0) {
       alert("Please enter valid width and height.");
       return;
     }
@@ -151,11 +136,8 @@ export default function Resizer() {
       <nav style={styles.nav}>
         <a href="/" style={styles.logo}>
           <div style={styles.logoIcon}>K</div>
-
           <span>
-            Kaam<span style={{ color: "#0878ff" }}>
-              Kit
-            </span>
+            Kaam<span style={{ color: "#0878ff" }}>Kit</span>
           </span>
         </a>
 
@@ -184,9 +166,7 @@ export default function Resizer() {
         <div style={styles.card}>
           {!preview ? (
             <label style={styles.uploadBox}>
-              <div style={styles.uploadIcon}>
-                ↗️
-              </div>
+              <div style={styles.uploadIcon}>↗️</div>
 
               <h2 style={styles.uploadTitle}>
                 Upload your image
@@ -223,7 +203,7 @@ export default function Resizer() {
               </div>
 
               <div style={styles.inputs}>
-                <div>
+                <div style={styles.inputGroup}>
                   <label>Width (px)</label>
 
                   <input
@@ -232,12 +212,13 @@ export default function Resizer() {
                     onChange={(e) =>
                       changeWidth(e.target.value)
                     }
+                    style={styles.input}
                   />
                 </div>
 
                 <div style={styles.multiply}>×</div>
 
-                <div>
+                <div style={styles.inputGroup}>
                   <label>Height (px)</label>
 
                   <input
@@ -246,6 +227,7 @@ export default function Resizer() {
                     onChange={(e) =>
                       changeHeight(e.target.value)
                     }
+                    style={styles.input}
                   />
                 </div>
               </div>
@@ -303,8 +285,7 @@ export default function Resizer() {
         </div>
 
         <p>
-          Simple Tools. Better Work. • Made with ❤️
-          in India 🇮🇳
+          Simple Tools. Better Work. • Made with ❤️ in India 🇮🇳
         </p>
       </footer>
     </main>
@@ -315,13 +296,13 @@ const styles = {
   page: {
     minHeight: "100vh",
     background:
-      "linear-gradient(135deg,#eef8ff 0%,#ffffff 55%,#eaf4ff 100%)",
+      "linear-gradient(135deg,#eef8ff,#ffffff,#eaf4ff)",
     color: "#10213f",
     fontFamily: "Arial, Helvetica, sans-serif",
   },
 
   nav: {
-    height: "72px",
+    minHeight: "72px",
     padding: "0 7%",
     display: "flex",
     alignItems: "center",
@@ -393,8 +374,7 @@ const styles = {
     border: "1px solid #dfeaf6",
     borderRadius: "25px",
     padding: "35px",
-    boxShadow:
-      "0 20px 50px rgba(30,80,130,.12)",
+    boxShadow: "0 20px 50px rgba(30,80,130,.12)",
   },
 
   uploadBox: {
@@ -445,19 +425,32 @@ const styles = {
 
   inputs: {
     display: "flex",
-    alignItems: "end",
+    alignItems: "flex-end",
     justifyContent: "center",
     gap: "15px",
     marginBottom: "18px",
+    flexWrap: "wrap",
   },
 
-  inputs div: {
+  inputGroup: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "7px",
     textAlign: "left",
+  },
+
+  input: {
+    width: "180px",
+    padding: "12px",
+    border: "1px solid #cbd9e8",
+    borderRadius: "10px",
+    fontSize: "16px",
+    outline: "none",
   },
 
   multiply: {
     fontSize: "25px",
-    paddingBottom: "10px",
+    paddingBottom: "8px",
     color: "#718096",
   },
 
