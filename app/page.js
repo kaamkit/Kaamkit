@@ -74,14 +74,35 @@ const tools = [
     href: "/excel-to-pdf",
     active: true,
   },
+  {
+    name: "PDF Merge",
+    icon: "📑",
+    description: "Merge multiple PDF files into one PDF document.",
+    href: "/pdf-merge",
+    active: true,
+  },
+  {
+    name: "PDF Split",
+    icon: "✂️",
+    description: "Split PDF files and extract the pages you need.",
+    href: "/pdf-split",
+    active: true,
+  },
+  {
+    name: "PDF Compressor",
+    icon: "🗜️",
+    description: "Reduce PDF file size quickly and easily.",
+    href: "/pdf-compress",
+    active: true,
+  },
 ];
 
 export default function Home() {
-  const [menuOpen, setMenuOpen] = useState(false);
   const [search, setSearch] = useState("");
 
   const filteredTools = tools.filter((tool) => {
-    const text = `${tool.name} ${tool.description}`.toLowerCase();
+    const text =
+      `${tool.name} ${tool.description}`.toLowerCase();
 
     return text.includes(search.toLowerCase());
   });
@@ -140,21 +161,6 @@ export default function Home() {
 
           Kaam<span style={{ color: "#1677ff" }}>Kit</span>
         </Link>
-
-        <button
-          type="button"
-          onClick={() => setMenuOpen(!menuOpen)}
-          style={{
-            display: "none",
-            border: "none",
-            background: "#eef6ff",
-            borderRadius: "12px",
-            padding: "10px 14px",
-            fontSize: "22px",
-          }}
-        >
-          ☰
-        </button>
 
         <div
           style={{
@@ -486,12 +492,6 @@ export default function Home() {
               </p>
 
               {tool.active ? (
-                /*
-                  IMPORTANT:
-                  Real route link.
-                  No onClick + no scrollIntoView.
-                  Therefore Excel to PDF will NOT jump to top.
-                */
                 <Link
                   href={tool.href}
                   style={{
