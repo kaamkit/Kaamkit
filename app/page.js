@@ -9,91 +9,84 @@ const tools = [
     icon: "📄",
     description: "Convert JPG, JPEG or PNG images to PDF easily.",
     href: "/jpg-to-pdf",
-    active: true,
   },
   {
     name: "Image Compressor",
     icon: "🗜️",
     description: "Reduce image size quickly while keeping good quality.",
     href: "/compressor",
-    active: true,
   },
   {
     name: "Image Resizer",
     icon: "↗️",
     description: "Resize your images to any custom dimensions.",
     href: "/resizer",
-    active: true,
   },
   {
     name: "PDF to Word",
     icon: "📝",
     description: "Convert PDF documents into editable Word files.",
     href: "/pdf-to-word",
-    active: true,
   },
   {
     name: "PDF to Excel",
     icon: "📊",
     description: "Convert PDF tables into Excel files.",
     href: "/pdf-to-excel",
-    active: true,
   },
   {
     name: "Word to Excel",
     icon: "📋",
     description: "Convert Word document data into Excel files.",
     href: "/word-to-excel",
-    active: true,
   },
   {
     name: "Word to PDF",
     icon: "📄",
     description: "Convert Word DOCX documents into PDF files.",
     href: "/word-to-pdf",
-    active: true,
   },
   {
     name: "GST Calculator",
     icon: "₹",
     description: "Calculate GST, CGST, SGST and final amount instantly.",
     href: "/gst-calculator",
-    active: true,
   },
   {
     name: "QR Generator",
     icon: "▦",
     description: "Create QR codes for text, links and websites.",
     href: "/qr-generator",
-    active: true,
   },
   {
     name: "Excel to PDF",
     icon: "📈",
     description: "Convert Excel files into PDF documents.",
     href: "/excel-to-pdf",
-    active: true,
   },
   {
     name: "PDF Merge",
     icon: "📑",
     description: "Merge multiple PDF files into one PDF document.",
     href: "/pdf-merge",
-    active: true,
   },
   {
     name: "PDF Split",
     icon: "✂️",
     description: "Split PDF files and extract the pages you need.",
     href: "/pdf-split",
-    active: true,
   },
   {
     name: "PDF Compressor",
     icon: "🗜️",
     description: "Reduce PDF file size quickly and easily.",
     href: "/pdf-compress",
-    active: true,
+  },
+  {
+    name: "OCR",
+    icon: "🔎",
+    description: "Extract editable text from images using OCR.",
+    href: "/ocr",
   },
 ];
 
@@ -101,10 +94,10 @@ export default function Home() {
   const [search, setSearch] = useState("");
 
   const filteredTools = tools.filter((tool) => {
-    const text =
+    const searchText =
       `${tool.name} ${tool.description}`.toLowerCase();
 
-    return text.includes(search.toLowerCase());
+    return searchText.includes(search.toLowerCase());
   });
 
   return (
@@ -491,46 +484,26 @@ export default function Home() {
                 {tool.description}
               </p>
 
-              {tool.active ? (
-                <Link
-                  href={tool.href}
-                  style={{
-                    marginTop: "auto",
-                    width: "100%",
-                    maxWidth: "220px",
-                    minHeight: "50px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "8px",
-                    borderRadius: "12px",
-                    background: "#1677ff",
-                    color: "#ffffff",
-                    textDecoration: "none",
-                    fontWeight: "800",
-                  }}
-                >
-                  Use Tool →
-                </Link>
-              ) : (
-                <span
-                  style={{
-                    marginTop: "auto",
-                    width: "100%",
-                    maxWidth: "220px",
-                    minHeight: "50px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    borderRadius: "12px",
-                    background: "#edf2f7",
-                    color: "#718096",
-                    fontWeight: "800",
-                  }}
-                >
-                  Coming Soon
-                </span>
-              )}
+              <Link
+                href={tool.href}
+                style={{
+                  marginTop: "auto",
+                  width: "100%",
+                  maxWidth: "220px",
+                  minHeight: "50px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
+                  borderRadius: "12px",
+                  background: "#1677ff",
+                  color: "#ffffff",
+                  textDecoration: "none",
+                  fontWeight: "800",
+                }}
+              >
+                Use Tool →
+              </Link>
             </div>
           ))}
         </div>
@@ -599,9 +572,9 @@ export default function Home() {
               maxWidth: "700px",
             }}
           >
-            KaamKit provides simple, fast and useful online
-            tools for everyday work without unnecessary
-            complexity.
+            KaamKit provides simple, fast and useful
+            online tools for everyday work without
+            unnecessary complexity.
           </p>
         </div>
       </section>
